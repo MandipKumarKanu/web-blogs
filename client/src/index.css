@@ -1,0 +1,64 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light Theme */
+    --background: 0 0% 100%; /* Pure white background */
+    --foreground: 240 10% 5%; /* Deep charcoal for text (better contrast) */
+    --card: 0 0% 98%; /* Off-white for cards */
+    --card-foreground: 240 10% 5%; 
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 5%;
+    --primary: 271 82% 56%; /* Your purple */
+    --primary-foreground: 0 0% 100%; /* White text on primary */
+    --secondary: 332 70% 51%; /* Your pink */
+    --secondary-foreground: 0 0% 100%; /* White text on secondary */
+    --muted: 240 5% 96%; /* Very light gray */
+    --muted-foreground: 240 4% 46%; /* Medium gray for secondary text */
+    --accent: 240 5% 90%; /* Light gray accents */
+    --accent-foreground: 240 10% 5%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 6% 90%; /* Light borders */
+    --input: 240 6% 90%;
+    --ring: 271 82% 56%; /* Purple focus ring */
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* Dark Theme */
+    --background: 240 10% 4%; /* Deep dark background */
+    --foreground: 0 0% 98%; /* Pure white text */
+    --card: 240 10% 6%; /* Slightly lighter cards */
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 5%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 271 82% 56%; /* Your purple */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 332 70% 51%; /* Your pink */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 240 6% 16%; /* Dark muted elements */
+    --muted-foreground: 240 5% 65%; /* Medium gray text */
+    --accent: 240 6% 20%; /* Dark accents */
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 6% 20%; /* Dark borders */
+    --input: 240 6% 20%;
+    --ring: 271 82% 70%; /* Brighter purple focus ring */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+    user-select: none
+  }
+  body {
+    @apply bg-background text-foreground;
+    scroll-behavior: smooth;
+  }
+}
+
