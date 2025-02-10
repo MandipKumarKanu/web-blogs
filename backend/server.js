@@ -6,6 +6,7 @@ const cookieParser = require("cookie-parser");
 const authRoutes = require("./routes/authRoutes");
 const blogRoutes = require("./routes/blogRoutes");
 const commentRoutes = require("./routes/commentRoutes");
+const startCronJob = require("./corn");
 
 const app = express();
 connectDB();
@@ -24,4 +25,7 @@ app.use("/api/comment", commentRoutes);
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  startCronJob();
+});

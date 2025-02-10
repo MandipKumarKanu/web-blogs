@@ -136,7 +136,9 @@ const update = async (req, res) => {
       profileImage: user.profileImage,
       userName: user.userName,
     };
-    res.json(updatedData);
+
+    res.status(201).json(updatedData);
+    
   } catch (error) {
     console.error(error);
     res.status(500).json({

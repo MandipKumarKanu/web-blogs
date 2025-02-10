@@ -1,9 +1,15 @@
 const Blog = require("../models/Blog");
 
 const createBlog = async (req, res) => {
-  const { title, content, tags, categories, image } = req.body;
+  const { title, content, tags, categories, image, scheduledPublishDate } =
+    req.body;
 
   try {
+    const status = scheduledPublishDate ? "scheduled" : "published";
+    const publishDate = scheduledPublishDate
+      ? new Date(scheduledPublishDate)
+      : new Date();
+
     const blog = await Blog.create({
       title,
       content,
@@ -11,9 +17,17 @@ const createBlog = async (req, res) => {
       categories,
       image,
       author: req.user.id,
+      scheduledPublishDate: publishDate,
+      status,
+      publishedAt: status === "published" ? publishDate : null,
     });
 
-    res.status(201).json({ message: "Blog created successfully", blog });
+    res.status(201).json({
+      message: `Blog ${
+        scheduledPublishDate ? "scheduled" : "created"
+      } successfully`,
+      blog,
+    });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -21,7 +35,7 @@ const createBlog = async (req, res) => {
 
 const getAllBlogs = async (req, res) => {
   try {
-    const blogs = await Blog.find()
+    const blogs = await Blog.find({ status: "published" })
       .populate("author", "name userName email profileImage")
       .populate("likes", "name profileImage");
 
@@ -37,7 +51,7 @@ const getAllBlogs = async (req, res) => {
 const getBlogById = async (req, res) => {
   try {
     const blog = await Blog.findById(req.params.id)
-      .populate("author", "name userName email profileImage")
+      .populate("author", "name userName email  profileImage")
       .populate("likes", "name profileImage");
 
     if (!blog) {

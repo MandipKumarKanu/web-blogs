@@ -13,9 +13,16 @@ const BlogSchema = new mongoose.Schema(
     tags: [{ type: String }],
     categories: [{ type: String }],
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", index: true }],
-    // comments: [
-    //   { type: mongoose.Schema.Types.ObjectId, ref: "Comment", required: true },
-    // ],
+    comments: [
+      { type: mongoose.Schema.Types.ObjectId, ref: "Comment", required: true },
+    ],
+    scheduledPublishDate: { type: Date, required: false },
+    publishedAt: { type: Date },
+    status: {
+      type: String,
+      enum: ["scheduled", "published"],
+      default: "published",
+    },
   },
   { timestamps: true }
 );
