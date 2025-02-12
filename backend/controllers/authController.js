@@ -83,9 +83,9 @@ const login = async (req, res) => {
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: true,
       maxAge: 7 * 24 * 60 * 60 * 1000,
-      sameSite: process.env.NODE_ENV === "production" ? "lax" : "none",
+      sameSite: process.env.NODE_ENV === "production" ? "lax" : "None",
     });
 
     res.status(201).json({ accessToken });
@@ -138,7 +138,6 @@ const update = async (req, res) => {
     };
 
     res.status(201).json(updatedData);
-    
   } catch (error) {
     console.error(error);
     res.status(500).json({
@@ -218,6 +217,56 @@ const updatePassword = async (req, res) => {
   }
 };
 
+const getAllUser = async (req, res) => {
+  const { page = 1, limit = 10 } = req.query;
+  const skip = (page - 1) * limit;
+
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Access denied. Admins only." });
+    }
+
+    const users = await User.find().skip(skip).limit(limit);
+    const totalUsers = await User.countDocuments();
+    const totalPages = Math.ceil(totalUsers / limit);
+
+    res.status(200).json({ users, totalPages, currentPage: page });
+  } catch (err) {
+    console.error(err.message);
+    res.status(400).json({
+      message: "Server Error",
+      error: err.response?.data || err.message,
+    });
+  }
+};
+
+const updateUserRole = async (req, res) => {
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Access denied. Admins only." });
+    }
+    const { userId, role } = req.body;
+
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Access denied. Admins only." });
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    user.role = role;
+    await user.save();
+  } catch (err) {
+    res.status(400).json({
+      message: "Server Error",
+      error: err.response?.data || err.message,
+    });
+  }
+};
+
 module.exports = {
   register,
   refresh,
@@ -226,4 +275,6 @@ module.exports = {
   update,
   getUserById,
   updatePassword,
+  getAllUser,
+  updateUserRole,
 };

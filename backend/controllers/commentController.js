@@ -6,16 +6,16 @@ const createComment = async (req, res) => {
 
   try {
     const blog = await Blog.findById(blogId);
-    if (!blog) return res.statue(404).json({ message: "Blog not found" });
+    if (!blog) return res.status(404).json({ message: "Blog not found" });
 
-    await Comment.create({
+    const comment = await Comment.create({
       blogId,
       author: req.user.id,
       content,
       parentComment: parentComment || null,
     });
 
-    return res.status(201).json({ message: "Comment Added" });
+    return res.status(201).json({ message: "Comment Added", comment });
   } catch (error) {
     console.error(error.message);
     return res.status(500).json({ message: error.message });
@@ -29,21 +29,15 @@ const getCommentByBlog = async (req, res) => {
       .populate("likes", "name profileImage")
       .lean();
 
-    // Step 1: Create a map to store comments by their _id
-    const commentMap = {};
-    comments.forEach((comment) => {
-      comment.replies = []; // Initialize replies array
-      commentMap[comment._id.toString()] = comment;
-    });
+    const commentMap = comments.reduce((acc, comment) => {
+      acc[comment._id.toString()] = { ...comment, replies: [] };
+      return acc;
+    }, {});
 
-    // Step 2: Build nested comment structure
     const rootComments = [];
     comments.forEach((comment) => {
       if (comment.parentComment) {
-        const parentId = comment.parentComment.toString();
-        if (commentMap[parentId]) {
-          commentMap[parentId].replies.push(comment);
-        }
+        commentMap[comment.parentComment.toString()]?.replies.push(comment);
       } else {
         rootComments.push(comment);
       }
@@ -102,9 +96,8 @@ const deleteComment = async (req, res) => {
     if (req.user.id !== comment.author.toString())
       return res.status(403).json({ error: "Unauthorized" });
 
-    // Delete the comment and all replies
     await Comment.deleteMany({
-      $or: [{ _id: comment._id }, { parentComment: comment._id }],
+      $or: [{ _id: comment._id }, { parentComment: { $in: [comment._id] } }],
     });
 
     res.status(200).json({ message: "Comment and replies deleted" });

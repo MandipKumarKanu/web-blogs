@@ -17,12 +17,14 @@ const BlogSchema = new mongoose.Schema(
       { type: mongoose.Schema.Types.ObjectId, ref: "Comment", required: true },
     ],
     scheduledPublishDate: { type: Date, required: false },
+    scheduled: { type: Boolean, default: false },
     publishedAt: { type: Date },
     status: {
       type: String,
-      enum: ["scheduled", "published"],
-      default: "published",
+      enum: ["pending", "approved", "published", "rejected"],
+      default: "pending",
     },
+    rejectionMessage: { type: String, required: false },
   },
   { timestamps: true }
 );

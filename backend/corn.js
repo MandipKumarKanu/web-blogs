@@ -5,15 +5,19 @@ const startCronJob = () => {
   cron.schedule("*/5 * * * *", async () => {
     const now = new Date();
 
+    console.log({ now });
+
     const blogsToPublish = await Blog.find({
+      scheduled: true,
       scheduledPublishDate: { $lte: now },
-      status: "scheduled",
+      status: "approved",
     });
 
     if (blogsToPublish.length > 0) {
       for (let blog of blogsToPublish) {
         blog.status = "published";
         blog.publishedAt = now;
+        blog.scheduled = false;
         await blog.save();
         console.log(`Blog ${blog.title} published`);
       }
