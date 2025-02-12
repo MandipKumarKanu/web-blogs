@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { Eye, EyeOff, Mail, Lock, User, AtSign } from "lucide-react";
-import { useAuthStore } from "./zustand/useAuthStore";
+import { useAuthStore } from "../store/useAuthStore";
 import { Link } from "react-router-dom";
 
 const signupSchema = z

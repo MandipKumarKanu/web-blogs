@@ -82,9 +82,7 @@ const RecentPosts = () => {
                     <div className="absolute inset-0 bg-black/10" />
                   </div>
                   <div className="absolute top-4 left-4">
-                    <div
-                      className="bg-primary/60 rounded-full text-xs text-white px-4 py-1"
-                    >
+                    <div className="bg-primary/60 rounded-full text-xs text-white px-4 py-1">
                       {post.category}
                     </div>
                   </div>
