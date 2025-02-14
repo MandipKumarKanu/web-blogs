@@ -2,18 +2,20 @@ import React, { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { Card, CardContent } from "./ui/card";
-import { featuredData } from "./featuredData"; // Assuming you have a separate data file for featured posts
+import { featuredData } from "./featuredData";
+// import { useBlogStore } from "@/store/useBlogStore";
 
 const Featured = () => {
   const [featuredPosts, setFeaturedPosts] = useState([]);
 
+ 
+
   useEffect(() => {
-    setFeaturedPosts(featuredData); // Assuming featuredData is an array of featured posts
+    setFeaturedPosts(featuredData);
   }, []);
 
   return (
     <section className="container mx-auto py-16 px-6">
-      {/* Header Section */}
       <div className="text-center mb-12">
         <h2 className="text-4xl md:text-5xl font-bold tracking-tight ">
           Featured Blogs
@@ -23,7 +25,6 @@ const Featured = () => {
         </p>
       </div>
 
-      {/* Featured Posts Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
         {featuredPosts.map((post) => (
           <Card
@@ -59,7 +60,6 @@ const Featured = () => {
         ))}
       </div>
 
-      {/* CTA Section */}
       <div className="text-center mt-12">
         <Button
           variant="outline"

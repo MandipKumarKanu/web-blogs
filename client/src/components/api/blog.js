@@ -1,3 +1,4 @@
+import axios from "axios";
 import { baseURL, customAxios } from "../config/axios";
 
 export async function createBlog(data) {
@@ -6,13 +7,8 @@ export async function createBlog(data) {
 }
 
 export async function fetchBlog(data) {
-  const url = "blogs/";
-  return customAxios.get(`${baseURL}/${url}`, {
-    params: {
-      page: data.pg,
-      limit: data.limit,
-    },
-  });
+  const url = `blogs/?page=${data.pg}&limit=${data.limit}`;
+  return customAxios.get(`${baseURL}/${url}`);
 }
 
 export async function getUnApprovedBlog(data) {
@@ -30,4 +26,50 @@ export async function approveBlog(blogId) {
 export async function rejectBlog(blogId) {
   const url = `blogs/${blogId}/reject`;
   return customAxios.patch(`${baseURL}/${url}`);
+}
+
+export async function getLatestBlogsByViews() {
+  const url = `blogs/popular/views`;
+  return axios.get(`${baseURL}/${url}`);
+}
+
+export async function getPopularBlogs() {
+  const url = `blogs/popular`;
+  return axios.get(`${baseURL}/${url}`);
+}
+
+export async function getBlogById(id) {
+  const url = `blogs/${id}`;
+  return axios.get(`${baseURL}/${url}`);
+}
+
+export async function summarizeBlog(id) {
+  const url = `blogs/summarize/${id}`;
+  return axios.get(`${baseURL}/${url}`);
+}
+
+export async function likeBlog(id, status = undefined) {
+  const url = `blogs/like/${id}`;
+  return customAxios.post(`${baseURL}/${url}`, {
+    status,
+  });
+}
+
+export async function incView(id) {
+  const url = `blogs/views/${id}`;
+  return axios.patch(`${baseURL}/${url}`, {
+    status,
+  });
+}
+
+export async function incShare(id) {
+  const url = `blogs/shares/${id}`;
+  return axios.patch(`${baseURL}/${url}`, {
+    status,
+  });
+}
+
+export async function getByCategory(ct) {
+  const url = `blogs/filter?category=${ct}`;
+  return axios.get(`${baseURL}/${url}`);
 }

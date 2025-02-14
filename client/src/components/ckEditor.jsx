@@ -1,7 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
-
-// Import all the needed plugins. Make sure your build/setup provides these.
 import {
   ClassicEditor,
   AccessibilityHelp,
@@ -32,15 +30,13 @@ import {
   TableCellProperties,
   TableProperties,
   TableColumnResize,
-  Link, // <-- Added Link plugin for adding/editing hyperlinks.
-  // ... You can import additional plugins here.
+  Link,
 } from "ckeditor5";
 
 import "ckeditor5/ckeditor5.css";
 import "./ck.css";
 
 export const CKEditorComp = ({ content, setContent, disableCK }) => {
-  const editorContainerRef = useRef(null);
   const editorRef = useRef(null);
   const [isLayoutReady, setIsLayoutReady] = useState(false);
 
@@ -49,11 +45,6 @@ export const CKEditorComp = ({ content, setContent, disableCK }) => {
     return () => setIsLayoutReady(false);
   }, []);
 
-  useEffect(() => {
-    if (editorRef.current) {
-      editorRef.current.setData(content);
-    }
-  }, [content]);
 
   const editorConfig = {
     toolbar: {
@@ -129,7 +120,7 @@ export const CKEditorComp = ({ content, setContent, disableCK }) => {
       options: [10, 12, 14, "default", 18, 20, 22],
       supportAllValues: true,
     },
-    initialData: "",
+    initialData: content, 
     list: {
       properties: {
         styles: true,
@@ -152,31 +143,24 @@ export const CKEditorComp = ({ content, setContent, disableCK }) => {
   };
 
   return (
-    <div>
-      <div className="main-container rounded-md">
-        <div
-          className="editor-container editor-container_classic-editor"
-          ref={editorContainerRef}
-        >
-          <div className="editor-container__editor">
-            <div>
-              {isLayoutReady && (
-                <CKEditor
-                  editor={ClassicEditor}
-                  data={content}
-                  config={editorConfig}
-                  disabled={disableCK}
-                  onReady={(editor) => {
-                    editorRef.current = editor;
-                  }}
-                  onChange={(_, editor) => {
-                    const data = editor.getData();
-                    setContent && setContent(data);
-                  }}
-                />
-              )}
-            </div>
-          </div>
+    <div className="main-container rounded-md">
+      <div className="editor-container editor-container_classic-editor">
+        <div className="editor-container__editor">
+          {isLayoutReady && (
+            <CKEditor
+              editor={ClassicEditor}
+              data={content}
+              config={editorConfig}
+              disabled={disableCK}
+              onReady={(editor) => {
+                editorRef.current = editor;
+              }}
+              onChange={(_, editor) => {
+                const data = editor.getData();
+                setContent(data);
+              }}
+            />
+          )}
         </div>
       </div>
     </div>

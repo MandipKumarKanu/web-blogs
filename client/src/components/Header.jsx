@@ -18,7 +18,7 @@ const Header = () => {
     <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-lg supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-8">
         <Link to="/" className="flex items-center gap-3 group">
-          <PenTool className="h-8 w-8 text-primary transition-transform group-hover:rotate-45" />
+          <PenTool className="h-8 w-8 text-primary" />
           <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
             FutureBlog
           </span>

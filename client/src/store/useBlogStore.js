@@ -3,6 +3,8 @@ import {
   getUnApprovedBlog,
   approveBlog,
   rejectBlog,
+  getLatestBlogsByViews,
+  getPopularBlogs,
 } from "@/components/api/blog";
 import getErrorMessage from "@/components/utils/getErrorMsg";
 import { toast } from "sonner";
@@ -14,6 +16,43 @@ export const useBlogStore = create((set) => ({
   blogs: [],
   totalPages: 1,
   currentPage: 1,
+  weekLoad: true,
+  weekError: true,
+  weeklyPopularBlogs: [],
+
+  getAllBlogs: async (pg, limit) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await fetchBlog({ pg, limit });
+      const { blogs, currentPage, totalPages } = response.data;
+      set({ loading: false, blogs, totalPages, currentPage, error: null });
+      return blogs;
+    } catch (error) {
+      set({ error: getErrorMessage(error), loading: false });
+    }
+  },
+
+  getAllPopular: async (pg, limit) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await getPopularBlogs();
+      const { blogs } = response.data;
+      set({ loading: false, blogs, error: null });
+    } catch (error) {
+      set({ error: getErrorMessage(error), loading: false });
+    }
+  },
+
+  getWeeklyPop: async () => {
+    set({ weekLoad: true, weekError: null });
+    try {
+      const response = await getLatestBlogsByViews();
+      const { blogs } = response.data;
+      set({ weekLoad: false, weeklyPopularBlogs: blogs, weekError: null });
+    } catch (error) {
+      set({ weekError: getErrorMessage(error), weekLoad: false });
+    }
+  },
 
   getBlogs: async (pg, limit) => {
     set({ loading: true, error: null });

@@ -8,7 +8,7 @@
     --background: 0 0% 100%; /* Pure white background */
     --foreground: 240 10% 5%; /* Deep charcoal for text (better contrast) */
     --card: 0 0% 98%; /* Off-white for cards */
-    --card-foreground: 240 10% 5%; 
+    --card-foreground: 240 10% 5%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 5%;
     --primary: 271 82% 56%; /* Your purple */
@@ -54,7 +54,7 @@
 @layer base {
   * {
     @apply border-border;
-    user-select: none
+    user-select: none;
   }
   body {
     @apply bg-background text-foreground;
@@ -62,3 +62,6 @@
   }
 }
 
+.rws-header {
+  color: rgb(8, 8, 10);
+}

@@ -50,6 +50,7 @@ const PREDEFINED_TAGS = [
   { value: "Science", label: "Science" },
   { value: "Art", label: "Art" },
   { value: "Music", label: "Music" },
+  { value: "Education", label: "Education" },
 ];
 
 const PREDEFINED_CATEGORIES = [
@@ -63,11 +64,14 @@ const PREDEFINED_CATEGORIES = [
   { value: "News", label: "News" },
   { value: "Entertainment", label: "Entertainment" },
   { value: "Sports", label: "Sports" },
+  { value: "Politics", label: "Politics" },
+  { value: "Health", label: "Health" },
+  { value: "Technology", label: "Technology" },
+  { value: "Environment", label: "Environment" },
 ];
 
 const blogSchema = z.object({
   title: z.string().min(12, "Title must be at least 12 characters"),
-  // content: z.string().min(40, "Content must be at least 40 characters"),
   image: z
     .instanceof(File)
     .refine((file) => file.size <= MAX_FILE_SIZE, "Max image size is 5MB")
@@ -182,6 +186,7 @@ const BlogForm = () => {
         imageUrl,
         tags: selectedTags,
         categories: selectedCategories,
+        content: desc,
       });
 
       await createBlog({
@@ -198,7 +203,7 @@ const BlogForm = () => {
       setSelectedCategories([]);
       setSelectedTags([]);
       setImagePreview(null);
-      setDesc(""); 
+      setDesc("");
     } catch (error) {
       console.error("Error submitting form:", error);
     } finally {

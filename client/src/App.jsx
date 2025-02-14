@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 import { ThemeProvider } from "./components/context/theme-provider";
 import Home from "./components/Home";
 import Header from "./components/Header";
@@ -18,12 +18,20 @@ import {
 import { useAuthStore } from "./store/useAuthStore";
 import { jwtDecode } from "jwt-decode";
 import ApproveBlog from "./Features/ApproveBlog";
+import AllBlog from "./pages/AllBlog";
+import PopularBlog from "./pages/PopularBlog";
+import NewBlog from "./pages/NewBlog";
+import BlogPage from "./pages/BlogPage";
+import useResetScrollPosition from "./hooks/useResetScrollPosition";
 
 const App = () => {
   const { token, setUser, setToken } = useAuthStore();
   useEffect(() => {
     setupInterceptors(() => token, setToken, setUser);
   }, []);
+
+  const location = useLocation();
+  useResetScrollPosition(location);
 
   useEffect(() => {
     const fetchAccessToken = async () => {
@@ -50,19 +58,21 @@ const App = () => {
   }, [token, setToken, setUser]);
   return (
     <ThemeProvider defaultTheme="light">
-      <BrowserRouter>
-        <Header />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/allblogs" element={<ApproveBlog />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/forget" element={<ForgotPassword />} />
-          <Route path="/add" element={<Add />} />
-        </Routes>
-        <Footer />
-        <Toaster richColors />
-      </BrowserRouter>
+      <Header />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/blogs" element={<AllBlog />} />
+        <Route path="/blog/:id" element={<BlogPage />} />
+        <Route path="/allblogs" element={<ApproveBlog />} />
+        <Route path="/popular" element={<PopularBlog />} />
+        <Route path="/new" element={<NewBlog />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/forget" element={<ForgotPassword />} />
+        <Route path="/add" element={<Add />} />
+      </Routes>
+      <Footer />
+      <Toaster richColors />
     </ThemeProvider>
   );
 };
