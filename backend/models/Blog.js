@@ -25,6 +25,8 @@ const BlogSchema = new mongoose.Schema(
       default: "pending",
     },
     rejectionMessage: { type: String, required: false },
+    views: { type: Number, default: 0 },
+    shares: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

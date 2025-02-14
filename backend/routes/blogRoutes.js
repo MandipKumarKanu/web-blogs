@@ -13,6 +13,11 @@ const {
   approveBlog,
   rejectBlog,
   getAllUnApprovedBlogs,
+  getLatestBlogsByViews,
+  incrementViews,
+  getPopularBlog,
+  summarizeBlog,
+  incrementShares
 } = require("../controllers/blogController");
 const roleMiddleware = require("../middleware/roleMiddleware");
 const router = express.Router();
@@ -24,9 +29,16 @@ router.post(
   createBlog
 );
 router.get("/", getAllBlogs);
+router.get("/summarize/:id", summarizeBlog);
+router.get("/popular", getPopularBlog);
 router.get("/search", searchBlogs);
 router.get("/filter", getByCategory);
-router.get("/unapproved", authMiddleware, roleMiddleware(["admin"]), getAllUnApprovedBlogs);
+router.get(
+  "/unapproved",
+  authMiddleware,
+  roleMiddleware(["admin"]),
+  getAllUnApprovedBlogs
+);
 router.get("/:id", getBlogById);
 router.delete("/:id", authMiddleware, deleteBlog);
 router.patch(
@@ -36,7 +48,7 @@ router.patch(
   updateBlog
 );
 router.get("/author/:authorId", getBlogsByUserId);
-router.post("/:id/like", authMiddleware, blogLikes);
+router.post("/like/:id", authMiddleware, blogLikes);
 router.patch(
   "/:id/approve",
   authMiddleware,
@@ -49,5 +61,8 @@ router.patch(
   roleMiddleware(["admin"]),
   rejectBlog
 );
+router.get("/popular/views", getLatestBlogsByViews);
+router.patch("/views/:id", incrementViews);
+router.patch("/shares/:id", incrementShares);
 
 module.exports = router;

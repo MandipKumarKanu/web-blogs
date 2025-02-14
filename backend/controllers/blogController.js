@@ -1,26 +1,29 @@
 const Blog = require("../models/Blog");
 const mongoose = require("mongoose");
-//const { validationResult } = require("express-validator");
+const addCustomClassesToHtml = require("../utils/addCustomClass");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-const createBlog = async (req, res, next) => {
+const createBlog = async (req, res) => {
   const { title, content, tags, categories, image, scheduledPublishDate } =
     req.body;
 
-  if (req.user.role !== "author" && req.user.role !== "admin") {
+  if (!["author", "admin"].includes(req.user.role)) {
     return res
       .status(403)
       .json({ message: "You must be an author or admin to create a blog." });
   }
 
   try {
-    const status = scheduledPublishDate ? "pending" : "pending";
+    const styledContent = addCustomClassesToHtml(content);
+
+    const status = req.user.role === "admin" ? "published" : "pending";
     const publishDate = scheduledPublishDate
       ? new Date(scheduledPublishDate)
       : null;
 
     const blog = await Blog.create({
       title,
-      content,
+      content: styledContent,
       tags,
       categories,
       image,
@@ -28,37 +31,46 @@ const createBlog = async (req, res, next) => {
       scheduledPublishDate: publishDate,
       scheduled: !!scheduledPublishDate,
       status,
-      publishedAt: null,
+      publishedAt: req.user.role === "admin" ? new Date() : null,
     });
 
     res.status(201).json({
       message: `Blog ${
-        scheduledPublishDate ? "scheduled" : "created"
+        req.user.role === "admin"
+          ? "published"
+          : scheduledPublishDate
+          ? "scheduled"
+          : "pending"
       } successfully`,
       blog,
     });
   } catch (error) {
-    next(error);
+    res.status(500).json({ error: error.message });
   }
 };
 
 const getAllBlogs = async (req, res, next) => {
   const { page = 1, limit = 10 } = req.query;
+  // console.log(page, limit);
   const skip = (page - 1) * limit;
 
   try {
     const blogs = await Blog.find({ status: "published" })
       .populate("author", "name userName email profileImage")
-      .populate("likes", "name profileImage")
+      .sort({ publishedAt: -1 })
       .skip(skip)
       .limit(limit);
 
     const totalBlogs = await Blog.countDocuments({ status: "published" });
     const totalPages = Math.ceil(totalBlogs / limit);
 
+    if (blogs.length === 0) {
+      return res.status(400).json({ error: "No blogs found" });
+    }
+
     res.status(200).json({ blogs, totalPages, currentPage: page });
   } catch (error) {
-    next(error);
+    res.status(500).error({ error });
   }
 };
 
@@ -75,6 +87,10 @@ const getAllUnApprovedBlogs = async (req, res, next) => {
 
     const totalBlogs = await Blog.countDocuments({ status: "pending" });
     const totalPages = Math.ceil(totalBlogs / limit);
+
+    if (blogs.length === 0) {
+      return res.status(400).json({ error: "No blogs found" });
+    }
 
     res.status(200).json({ blogs, totalPages, currentPage: page });
   } catch (error) {
@@ -119,9 +135,13 @@ const getBlogsByUserId = async (req, res, next) => {
     });
     const totalPages = Math.ceil(totalBlogs / limit);
 
+    if (blogs.length === 0) {
+      return res.status(400).json({ error: "No blogs found" });
+    }
+
     res.status(200).json({ blogs, totalPages, currentPage: page });
   } catch (error) {
-    next(error);
+    res.status(500).error({ error });
   }
 };
 
@@ -137,7 +157,55 @@ const deleteBlog = async (req, res, next) => {
 
     res.status(200).json({ message: "Blog deleted successfully" });
   } catch (error) {
-    next(error);
+    res.status(500).error({ error });
+  }
+};
+
+const summarizeBlog = async (req, res) => {
+  try {
+    const blog = await Blog.findById(req.params.id);
+
+    if (!blog) {
+      throw new Error("Blog not found");
+    }
+
+    const prompt = `Summarize the following content by ignoring the HTML tags and providing at least 5 key points, you can give more for user to understand nicely in HTML list bullet form. Be concise and cover the most important aspects in easy term to be understand by simple people, if there is any date or time, mention that point too. Only return the HTML code without any explanations or extra text. The list should be in the following format:\n\n<ul class="list-disc ml-6 space-y-2 text-muted-foreground">\n  <li>...</li>\n  <li>...</li>\n</ul>\n\nContent:\n\n${blog.content}`;
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text: prompt,
+                },
+              ],
+            },
+          ],
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      // console.log(response);
+      throw new Error(`Gemini API error: ${response.status}`);
+    }
+
+    const result = await response.json();
+    // console.log(result);
+
+    res.status(200).json({
+      summary: result?.candidates?.[0].content?.parts?.[0].text,
+    });
+  } catch (error) {
+    // console.error("Error summarizing blog:", error);
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -205,7 +273,7 @@ const searchBlogs = async (req, res, next) => {
     );
     res.status(200).json({ blogs });
   } catch (error) {
-    next(error);
+    res.status(500).error({ error });
   }
 };
 
@@ -218,39 +286,56 @@ const getByCategory = async (req, res, next) => {
       .json({ error: "Please provide category for search" });
 
   try {
-    const blogs = await Blog.find({ categories: category }).populate(
-      "author",
-      "name profileImage"
-    );
+    let blogs;
+    if (category === "All") {
+      blogs = await Blog.find().populate("author", "name profileImage");
+    } else {
+      blogs = await Blog.find({ categories: category }).populate(
+        "author",
+        "name profileImage"
+      );
+    }
     res.status(200).json({ blogs });
   } catch (error) {
-    next(error);
+    res.status(500).json({ error });
   }
 };
 
-const blogLikes = async (req, res, next) => {
+const blogLikes = async (req, res) => {
   try {
     const userId = req.user.id;
     const blog = await Blog.findById(req.params.id);
 
-    if (!blog) return res.status(404).json({ message: "Blog not found" });
+    if (!blog) {
+      return res.status(404).json({ message: "Blog not found" });
+    }
 
-    const isLiked = blog.likes.includes(userId);
+    if (req.body.status !== undefined) {
+      if (req.body.status) {
+        await Blog.findByIdAndUpdate(
+          req.params.id,
+          { $addToSet: { likes: userId } },
+          { new: true }
+        );
+      } else {
+        await Blog.findByIdAndUpdate(
+          req.params.id,
+          { $pull: { likes: userId } },
+          { new: true }
+        );
+      }
+    }
 
-    const updatedBlog = await Blog.findByIdAndUpdate(
-      req.params.id,
-      isLiked ? { $pull: { likes: userId } } : { $push: { likes: userId } },
-      { new: true }
-    ).populate("likes", "name profileImage");
+    const updatedBlog = await Blog.findById(req.params.id);
+    const isLiked = updatedBlog.likes.includes(userId);
 
     res.status(200).json({
-      message: isLiked
-        ? "Like removed successfully"
-        : "Blog liked successfully",
-      blog: updatedBlog,
+      isLiked,
+      likesCount: updatedBlog.likes.length,
     });
   } catch (error) {
-    next(error);
+    console.error("Error handling blog likes:", error);
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -281,6 +366,110 @@ const rejectBlog = async (req, res) => {
   }
 };
 
+const getLatestBlogsByViews = async (req, res) => {
+  const oneWeekAgo = new Date();
+  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+  try {
+    const blogs = await Blog.find({
+      createdAt: { $gte: oneWeekAgo },
+      status: "published",
+    })
+      .populate("author", "name userName email profileImage")
+      .sort({ views: -1 })
+      .limit(10);
+
+    if (blogs.length === 0) {
+      return res.status(400).json({ error: "No blogs found" });
+    }
+
+    res.status(200).json({ blogs });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const getPopularBlog = async (req, res) => {
+  try {
+    const threeDaysAgo = new Date();
+    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+
+    const blogs = await Blog.aggregate([
+      {
+        $match: { status: "published" },
+      },
+      {
+        $addFields: {
+          isRecent: { $cond: [{ $gte: ["$publishedAt", threeDaysAgo] }, 1, 0] },
+        },
+      },
+      {
+        $sort: { isRecent: -1, views: -1, publishedAt: -1 },
+      },
+      { $limit: 20 },
+      {
+        $lookup: {
+          from: "users",
+          localField: "author",
+          foreignField: "_id",
+          as: "author",
+        },
+      },
+      {
+        $unwind: "$author",
+      },
+      {
+        $project: {
+          title: 1,
+          content: 1,
+          views: 1,
+          publishedAt: 1,
+          categories: 1,
+          image: 1,
+          isRecent: 1,
+          "author.name": 1,
+          "author.userName": 1,
+          "author.email": 1,
+          "author.profileImage": 1,
+        },
+      },
+    ]);
+
+    res.status(200).json({ blogs });
+  } catch (error) {
+    console.error("Error fetching popular blogs:", error);
+    res.status(500).json({ error });
+  }
+};
+
+const incrementViews = async (req, res) => {
+  try {
+    const blog = await Blog.findById(req.params.id);
+    if (!blog) {
+      return res.status(404).json({ message: "Blog not found" });
+    }
+    blog.views += 1;
+    await blog.save();
+    res.status(200).json({ views: blog.views });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const incrementShares = async (req, res) => {
+  try {
+    const blog = await Blog.findById(req.params.id);
+    if (!blog) {
+      return res.status(404).json({ message: "Blog not found" });
+    }
+    blog.shares += 1;
+    await blog.save();
+    res.status(200).json({ shares: blog.shares });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
   createBlog,
   getAllBlogs,
@@ -294,4 +483,9 @@ module.exports = {
   approveBlog,
   getAllUnApprovedBlogs,
   rejectBlog,
+  getLatestBlogsByViews,
+  incrementViews,
+  getPopularBlog,
+  summarizeBlog,
+  incrementShares
 };
