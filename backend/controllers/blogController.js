@@ -108,7 +108,8 @@ const getBlogById = async (req, res) => {
   try {
     const blog = await Blog.findById(id)
       .populate("author", "name userName email profileImage")
-      .populate("likes", "name profileImage");
+      .populate("likes", "name profileImage")
+      .populate("comments");
 
     if (!blog) {
       return res.status(404).json({ message: "Blog not found" });
@@ -288,12 +289,13 @@ const getByCategory = async (req, res, next) => {
   try {
     let blogs;
     if (category === "All") {
-      blogs = await Blog.find().populate("author", "name profileImage");
+      blogs = await Blog.find()
+        .populate("author", "name profileImage")
+        .populate("comments");
     } else {
-      blogs = await Blog.find({ categories: category }).populate(
-        "author",
-        "name profileImage"
-      );
+      blogs = await Blog.find({ categories: category })
+        .populate("author", "name profileImage")
+        .populate("comments");
     }
     res.status(200).json({ blogs });
   } catch (error) {
@@ -470,6 +472,34 @@ const incrementShares = async (req, res) => {
   }
 };
 
+const getBlogsByCategoryPage = async (req, res) => {
+  const { categories } = req.body;
+
+  if (!Array.isArray(categories) || categories.length === 0) {
+    return res
+      .status(400)
+      .json({ message: "Categories must be an array and cannot be empty." });
+  }
+
+  try {
+    const blogs = await Blog.find({ categories: { $in: categories } })
+      .populate("author", "name userName email profileImage")
+      .populate("likes", "name profileImage");
+
+    const blogsByCategoryGrp = categories.map((category) => ({
+      category,
+      blogs: blogs
+        .filter((blog) => blog.categories.includes(category))
+        .slice(0, 5), 
+    }));
+
+    return res.status(200).json({ blogsByCategoryGrp });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createBlog,
   getAllBlogs,
@@ -487,5 +517,6 @@ module.exports = {
   incrementViews,
   getPopularBlog,
   summarizeBlog,
-  incrementShares
+  incrementShares,
+  getBlogsByCategoryPage,
 };

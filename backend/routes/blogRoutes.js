@@ -17,7 +17,8 @@ const {
   incrementViews,
   getPopularBlog,
   summarizeBlog,
-  incrementShares
+  incrementShares,
+  getBlogsByCategoryPage
 } = require("../controllers/blogController");
 const roleMiddleware = require("../middleware/roleMiddleware");
 const router = express.Router();
@@ -64,5 +65,6 @@ router.patch(
 router.get("/popular/views", getLatestBlogsByViews);
 router.patch("/views/:id", incrementViews);
 router.patch("/shares/:id", incrementShares);
+router.post("/by-categories", getBlogsByCategoryPage);
 
 module.exports = router;

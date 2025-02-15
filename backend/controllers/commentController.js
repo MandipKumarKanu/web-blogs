@@ -15,6 +15,9 @@ const createComment = async (req, res) => {
       parentComment: parentComment || null,
     });
 
+    blog.comments.push(comment._id);
+    await blog.save();
+
     return res.status(201).json({ message: "Comment Added", comment });
   } catch (error) {
     console.error(error.message);
@@ -25,8 +28,9 @@ const createComment = async (req, res) => {
 const getCommentByBlog = async (req, res) => {
   try {
     const comments = await Comment.find({ blogId: req.params.blogId })
-      .populate("author", "name profileImage")
+      .populate("author", "name profileImage userName")
       .populate("likes", "name profileImage")
+      .sort({ createdAt: -1 })
       .lean();
 
     const commentMap = comments.reduce((acc, comment) => {
@@ -43,7 +47,11 @@ const getCommentByBlog = async (req, res) => {
       }
     });
 
-    return res.status(200).json({ comments: rootComments });
+    return res.status(200).json({
+      comments: rootComments.concat(
+        Object.values(commentMap).filter((c) => c.parentComment)
+      ),
+    });
   } catch (error) {
     console.error(error.message);
     res.status(500).json({ message: error.message });
@@ -64,7 +72,6 @@ const likeComment = async (req, res) => {
         { $push: { likes: userId } },
         { new: true }
       );
-      // .populate("author", "name profileImage");
 
       return res.status(200).json({
         message: "Comment liked successfully",
