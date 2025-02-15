@@ -1,9 +1,21 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { ArrowRight, Twitter, Linkedin, Rss, Mail } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { useBlogStore } from "@/store/useBlogStore";
 
 const Footer = () => {
+  const { weekError, weekLoad, weeklyPopularBlogs, getWeeklyPop } =
+    useBlogStore();
+
+  useEffect(() => {
+    if (weeklyPopularBlogs.length === 0) fetch();
+    console.log(weeklyPopularBlogs);
+  }, []);
+
+  const fetch = async () => {
+    await getWeeklyPop();
+  };
   return (
     <footer className="bg-gray-800/10 text-muted-foreground py-16">
       <div className="max-w-7xl mx-auto px-4">
@@ -67,33 +79,33 @@ const Footer = () => {
               <li>
                 <a
                   href="/post-1"
-                  className="hover:text-primary transition-colors transform hover:scale-105"
+                  className="hover:text-primary transition-colors transform hover:scale-105 line-clamp-2"
                 >
-                  Getting Started with Web Development
+                  {weeklyPopularBlogs?.[0]?.title}
                 </a>
               </li>
               <li>
                 <a
                   href="/post-2"
-                  className="hover:text-primary transition-colors transform hover:scale-105"
+                  className="hover:text-primary transition-colors transform hover:scale-105 line-clamp-1"
                 >
-                  The Future of AI in 2024
+                  {weeklyPopularBlogs?.[1]?.title}
                 </a>
               </li>
               <li>
                 <a
                   href="/post-3"
-                  className="hover:text-primary transition-colors transform hover:scale-105"
+                  className="hover:text-primary transition-colors transform hover:scale-105 line-clamp-1"
                 >
-                  10 Productivity Hacks
+                  {weeklyPopularBlogs?.[2]?.title}
                 </a>
               </li>
               <li>
                 <a
                   href="/post-4"
-                  className="hover:text-primary transition-colors transform hover:scale-105"
+                  className="hover:text-primary transition-colors transform hover:scale-105 line-clamp-1"
                 >
-                  Writing Better Blog Posts
+                  {weeklyPopularBlogs?.[3]?.title}
                 </a>
               </li>
             </ul>

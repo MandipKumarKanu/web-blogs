@@ -33,6 +33,7 @@ const PostCard = ({
           <div className="absolute inset-0">
             <img
               src={image}
+              loading="lazy"
               alt={title}
               className="w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-110"
             />

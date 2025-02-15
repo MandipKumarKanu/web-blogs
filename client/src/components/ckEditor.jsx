@@ -31,6 +31,7 @@ import {
   TableProperties,
   TableColumnResize,
   Link,
+  AutoLink, // <-- Import AutoLink
 } from "ckeditor5";
 
 import "ckeditor5/ckeditor5.css";
@@ -44,7 +45,6 @@ export const CKEditorComp = ({ content, setContent, disableCK }) => {
     setIsLayoutReady(true);
     return () => setIsLayoutReady(false);
   }, []);
-
 
   const editorConfig = {
     toolbar: {
@@ -69,7 +69,7 @@ export const CKEditorComp = ({ content, setContent, disableCK }) => {
         "specialCharacters",
         "highlight",
         "|",
-        "link",
+        "link", // Keep Link for editing links
         "|",
         "bulletedList",
         "numberedList",
@@ -111,6 +111,7 @@ export const CKEditorComp = ({ content, setContent, disableCK }) => {
       TableProperties,
       TableColumnResize,
       Link,
+      AutoLink, // <-- Add AutoLink here
     ],
     balloonToolbar: ["bold", "italic", "|", "bulletedList", "numberedList"],
     fontFamily: {
@@ -120,7 +121,7 @@ export const CKEditorComp = ({ content, setContent, disableCK }) => {
       options: [10, 12, 14, "default", 18, 20, 22],
       supportAllValues: true,
     },
-    initialData: content, 
+    initialData: content,
     list: {
       properties: {
         styles: true,

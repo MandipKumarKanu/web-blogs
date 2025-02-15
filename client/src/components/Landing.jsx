@@ -11,8 +11,7 @@ const Landing = () => {
     useBlogStore();
 
   useEffect(() => {
-    fetch();
-    console.log(weeklyPopularBlogs);
+    if (weeklyPopularBlogs === 0) fetch();
   }, []);
 
   const fetch = async () => {
@@ -39,6 +38,7 @@ const Landing = () => {
               <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent rounded-[2.5rem] z-10" />
               <img
                 src={weeklyPopularBlogs[0]?.image}
+                loading="lazy"
                 alt={weeklyPopularBlogs[0]?.title}
                 className="rounded-[2.5rem] object-cover w-full h-[500px] transition-transform duration-300"
               />
@@ -72,36 +72,35 @@ const Landing = () => {
 
         <div className="w-full flex flex-col gap-6">
           <div className="p-6 rounded-[2.5rem] backdrop-blur-lg bg-gray-800/5 border border-white/10 h-full">
-          <Link to={`/blog/${weeklyPopularBlogs[1]?._id}`}>
-            <span className="text-sm font-medium text-purple-600">
-              {weeklyPopularBlogs[1]?.categories[0]}
-            </span>
-            <h3 className="text-2xl font-bold mt-2 mb-3 line-clamp-2">
-              {weeklyPopularBlogs[1]?.title}
-            </h3>
-            <div className="text-muted-foreground line-clamp-3">
-              {weeklyPopularBlogs[1] && parse(weeklyPopularBlogs[1]?.content)}
-            </div>
+            <Link to={`/blog/${weeklyPopularBlogs[1]?._id}`}>
+              <span className="text-sm font-medium text-purple-600">
+                {weeklyPopularBlogs[1]?.categories[0]}
+              </span>
+              <h3 className="text-2xl font-bold mt-2 mb-3 line-clamp-2">
+                {weeklyPopularBlogs[1]?.title}
+              </h3>
+              <div className="text-muted-foreground line-clamp-3">
+                {weeklyPopularBlogs[1] && parse(weeklyPopularBlogs[1]?.content)}
+              </div>
             </Link>
           </div>
 
           <div className="relative group h-full">
-          <Link to={`/blog/${weeklyPopularBlogs[2]?._id}`}>
-            
-            <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 to-transparent rounded-[2.5rem] z-10" />
-            <img
-              src={weeklyPopularBlogs[2]?.image}
-              alt={weeklyPopularBlogs[2]?.title}
-              className="rounded-[2.5rem] object-cover w-full h-full min-h-[300px] transition-transform duration-300 group-hover:scale-[0.99]"
-            />
+            <Link to={`/blog/${weeklyPopularBlogs[2]?._id}`}>
+              <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 to-transparent rounded-[2.5rem] z-10" />
+              <img
+                src={weeklyPopularBlogs[2]?.image}
+                loading="lazy"
+                alt={weeklyPopularBlogs[2]?.title}
+                className="rounded-[2.5rem] object-cover w-full h-full min-h-[300px] transition-transform duration-300 group-hover:scale-[0.99]"
+              />
             </Link>
             <div className="absolute bottom-6 right-6 z-20">
-          <Link to={`/popular`}>
-
-              <Button className="rounded-2xl px-6 py-5 backdrop-blur-sm bg-white/20 hover:bg-white/30 text-white">
-                View Collection
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
+              <Link to={`/popular`}>
+                <Button className="rounded-2xl px-6 py-5 backdrop-blur-sm bg-white/20 hover:bg-white/30 text-white">
+                  View Collection
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
               </Link>
             </div>
           </div>

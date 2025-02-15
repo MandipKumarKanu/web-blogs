@@ -22,6 +22,9 @@ import getErrorMessage from "@/components/utils/getErrorMsg";
 import { format } from "date-fns";
 import { useAuthStore } from "@/store/useAuthStore";
 import { RWebShare } from "react-web-share";
+import BlogSkeleton from "@/components/BlogSkeleton";
+import ShrinkDescription from "@/components/ShrinkDescription";
+import CommentsDialog from "@/components/CommentSection";
 
 export default function BlogPage() {
   const [loading, setLoading] = useState(true);
@@ -32,8 +35,11 @@ export default function BlogPage() {
   const [sumError, setSumError] = useState(null);
   const [isLiked, setIsLiked] = useState(false);
   const [likeLoading, setLikeLoading] = useState(false);
+  const [commentsOpen, setCommentsOpen] = useState(false);
+  const [commentCount, setCommentCount] = useState(0);
 
-  const { token } = useAuthStore();
+  const { token, user } = useAuthStore();
+  // console.log(user)
 
   const navigate = useNavigate();
   const { id } = useParams();
@@ -84,6 +90,10 @@ export default function BlogPage() {
     }
   };
 
+  const incrementComment = () => {
+    setCommentCount((prevCount) => prevCount + 1);
+  };
+
   const checkLikeStatus = async () => {
     try {
       setLikeLoading(true);
@@ -101,6 +111,7 @@ export default function BlogPage() {
       const response = await getBlogById(id);
       const fetchedBlog = response.data.blog;
       setBlog(fetchedBlog);
+      setCommentCount(fetchedBlog.comments.length || 0);
     } catch (error) {
       setError(getErrorMessage(error));
     } finally {
@@ -147,11 +158,7 @@ export default function BlogPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Loading blog...</p>
-      </div>
-    );
+    return <BlogSkeleton />;
   }
 
   if (error) {
@@ -254,10 +261,11 @@ export default function BlogPage() {
           src={
             blog.image || "https://via.placeholder.com/1200x600?text=No+Image"
           }
+          loading="lazy"
           alt="Blog Hero"
           className="w-full h-full object-cover transition-transform duration-500"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent pointer-events-none" />
         <h2 className="absolute bottom-6 left-1/2 -translate-x-1/2 p-4 text-center text-xl md:text-3xl lg:text-4xl font-bold text-foreground/90 leading-tight drop-shadow-lg max-w-[95%] sm:max-w-[70%]">
           {blog.title}
         </h2>
@@ -265,15 +273,7 @@ export default function BlogPage() {
 
       <div className="container mx-auto py-12 px-4 sm:px-6 md:px-8 grid grid-cols-1 lg:grid-cols-3 gap-12">
         <div className="lg:col-span-2 space-y-8">
-          <div className="prose max-w-none">{blogContent}</div>
-          <div className="mt-6">
-            <Button
-              variant="outline"
-              className="px-6 py-4 text-lg rounded-full"
-            >
-              Read Full Blog
-            </Button>
-          </div>
+          <ShrinkDescription desc={blogContent} />
         </div>
 
         <aside className="space-y-8 lg:sticky top-20 self-start">
@@ -295,9 +295,12 @@ export default function BlogPage() {
               )}
               <span>{blog.likes?.length || 0}</span>
             </div>
-            <div className="flex items-center gap-2 bg-muted-foreground/10 pl-3 rounded-3xl py-2 pr-6 border-2 cursor-pointer">
+            <div
+              className="flex items-center gap-2 bg-muted-foreground/10 pl-3 rounded-3xl py-2 pr-6 border-2 cursor-pointer"
+              onClick={() => setCommentsOpen(true)}
+            >
               <MessageCircleDashed className="h-4 w-4 text-blue-500" />
-              <span>{blog.comments?.length || 0}</span>
+              <span>{commentCount}</span>
             </div>
 
             <RWebShare
@@ -361,6 +364,12 @@ export default function BlogPage() {
           </div>
         </aside>
       </div>
+      <CommentsDialog
+        blogId={id}
+        isOpen={commentsOpen}
+        onClose={() => setCommentsOpen(false)}
+        incrementComment={incrementComment}
+      />
     </div>
   );
 }

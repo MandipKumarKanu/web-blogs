@@ -8,8 +8,6 @@ import { featuredData } from "./featuredData";
 const Featured = () => {
   const [featuredPosts, setFeaturedPosts] = useState([]);
 
- 
-
   useEffect(() => {
     setFeaturedPosts(featuredData);
   }, []);
@@ -34,6 +32,7 @@ const Featured = () => {
             <div className="relative w-full h-56 md:h-72">
               <img
                 src={post.image}
+                loading="lazy"
                 alt={post.title}
                 className="w-full h-full object-cover group-hover:scale-110 transition-all duration-300"
               />

@@ -29,9 +29,10 @@ const RecentPosts = () => {
         </div>
 
         <div className="space-y-8">
-          {blogs && blogs.slice(0, 4).map((post, key) => (
-            <RecentCard key={key} post={post}/>
-          ))}
+          {blogs &&
+            blogs
+              .slice(0, 4)
+              .map((post, key) => <RecentCard key={key} post={post} />)}
         </div>
       </div>
     </section>

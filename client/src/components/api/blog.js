@@ -73,3 +73,8 @@ export async function getByCategory(ct) {
   const url = `blogs/filter?category=${ct}`;
   return axios.get(`${baseURL}/${url}`);
 }
+
+export async function getByCategoryGrp(cts) {
+  const url = `blogs/by-categories`;
+  return axios.post(`${baseURL}/${url}`, cts);
+}

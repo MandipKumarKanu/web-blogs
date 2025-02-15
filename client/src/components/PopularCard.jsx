@@ -30,6 +30,7 @@ const PopularCard = ({ post }) => {
           <Link to={`/blog/${post?._id}`}>
             <img
               src={post.image}
+              loading="lazy"
               alt={post.title}
               className="w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-105 rounded-t-2xl md:rounded-l-2xl md:rounded-tr-none"
             />
@@ -70,7 +71,7 @@ const PopularCard = ({ post }) => {
               </div>
               <div className="flex items-center gap-2 bg-muted-foreground/10 pl-3 rounded-3xl py-2 pr-6 border-2 hover:bg-muted-foreground/20 transition-colors">
                 <Share2 className="h-4 w-4 text-blue-500" />
-                <span>{post?.shares?.length || 0}</span>
+                <span>{post?.shares || 0}</span>
               </div>
             </div>
 

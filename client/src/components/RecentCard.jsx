@@ -16,6 +16,7 @@ const RecentCard = ({ post }) => {
           <div className="absolute inset-0">
             <img
               src={post.image}
+              loading="lazy"
               alt={post.title}
               className="w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-110"
             />
@@ -31,9 +32,9 @@ const RecentCard = ({ post }) => {
         <CardContent className="flex-1 p-6 md:p-8 flex flex-col justify-between">
           <div>
             <Link to={`/blog/${post?._id}`}>
-            <h3 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 leading-tight line-clamp-2 hover:text-primary transition-colors duration-300">
-              {post.title}
-            </h3>
+              <h3 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 leading-tight line-clamp-2 hover:text-primary transition-colors duration-300">
+                {post.title}
+              </h3>
             </Link>
             <div className="text-muted-foreground mb-6 line-clamp-3">
               {parse(post.content)}

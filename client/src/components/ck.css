@@ -35,3 +35,7 @@
 .ck.ck-content > * {
   user-select: unset;
 }
+
+.ck-content a {
+  text-decoration: underline;
+}

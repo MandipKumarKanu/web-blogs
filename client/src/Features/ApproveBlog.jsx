@@ -200,6 +200,7 @@ const ApproveBlog = () => {
                           "https://via.placeholder.com/300"
                         }
                         alt={selectedBlog.title}
+                        loading="lazy"
                         className="w-full h-full object-cover"
                       />
                     </div>
