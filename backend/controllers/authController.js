@@ -16,7 +16,7 @@ const register = async (req, res) => {
 
     const payload = {
       user: {
-        userName: user.UserName,
+        userName: user.userName,
         id: user._id,
         email: user.email,
         name: user.name,

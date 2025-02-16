@@ -1,7 +1,6 @@
 const Blog = require("../models/Blog");
 const mongoose = require("mongoose");
 const addCustomClassesToHtml = require("../utils/addCustomClass");
-const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const createBlog = async (req, res) => {
   const { title, content, tags, categories, image, scheduledPublishDate } =
