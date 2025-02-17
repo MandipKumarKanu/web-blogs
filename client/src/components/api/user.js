@@ -10,3 +10,18 @@ export async function authSignIn(data) {
   const url = "auth/login";
   return customAxios.post(`${baseURL}/${url}`, data);
 }
+
+export async function blogByUserId(id) {
+  const url = `blogs/author/${id}`;
+  return axios.get(`${baseURL}/${url}`);
+}
+
+export async function updateUser(data) {
+  const url = `auth/update`;
+  return customAxios.patch(`${baseURL}/${url}`, data);
+}
+
+export async function updatePass(data) {
+  const url = `auth/password`;
+  return customAxios.patch(`${baseURL}/${url}`, data);
+}

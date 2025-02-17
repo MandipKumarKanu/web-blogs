@@ -25,6 +25,8 @@ import BlogPage from "./pages/BlogPage";
 import useResetScrollPosition from "./hooks/useResetScrollPosition";
 import TopicPage from "./pages/TopicPage";
 import CategoryPage from "./pages/CategoryPage";
+import ProfilePage from "./pages/ProfilePage";
+import Notification from "./components/Notification";
 
 const App = () => {
   const { token, setUser, setToken } = useAuthStore();
@@ -66,6 +68,7 @@ const App = () => {
         <Route path="/blogs" element={<AllBlog />} />
         <Route path="/blog/:id" element={<BlogPage />} />
         <Route path="/allblogs" element={<ApproveBlog />} />
+        <Route path="/profile" element={<ProfilePage />} />
         <Route path="/category/:name" element={<CategoryPage />} />
         <Route path="/popular" element={<PopularBlog />} />
         <Route path="/topics" element={<TopicPage />} />
@@ -75,6 +78,7 @@ const App = () => {
         <Route path="/forget" element={<ForgotPassword />} />
         <Route path="/add" element={<Add />} />
       </Routes>
+      <Notification />
       <Footer />
       <Toaster richColors />
     </ThemeProvider>

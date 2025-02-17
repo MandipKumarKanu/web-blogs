@@ -98,7 +98,7 @@ const Category = () => {
               .slice(0, 5)
               .map((post) => (
                 <BlogCard
-                  key={post.id}
+                  key={post._id}
                   post={post}
                   selectedCategory={selectedCategory}
                 />

@@ -190,7 +190,6 @@ const ApproveBlog = () => {
                     onClick={() => setIsDialogOpen(false)}
                   />
                 </DialogHeader>
-                {/* Use the shadcn ScrollArea for a custom, non-default scrollbar */}
                 <ScrollArea className="h-[calc(90vh-120px)]">
                   <div className="space-y-6 p-4">
                     <div className="aspect-video relative overflow-hidden rounded-lg shadow">

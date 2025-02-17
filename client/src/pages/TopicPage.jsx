@@ -101,7 +101,7 @@ const TopicPage = () => {
             </div>
 
             {blogs.length > 0 ? (
-              <div className="px-8">
+              <div className="px-12">
                 <Carousel
                   opts={{
                     align: "start",

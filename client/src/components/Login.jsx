@@ -16,7 +16,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -26,6 +26,8 @@ const loginSchema = z.object({
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const { login, loading, error } = useAuthStore();
+
+  const navigate = useNavigate();
 
   const {
     register,
@@ -40,7 +42,7 @@ const Login = () => {
   });
 
   const onLogin = (data) => {
-    login(data.email, data.password);
+    login(data.email, data.password, navigate);
   };
 
   return (
@@ -133,12 +135,6 @@ const Login = () => {
                   "Sign In"
                 )}
               </Button>
-
-              {/* {error && (
-                <Alert variant="destructive" className="py-2">
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )} */}
 
               <div className="text-center text-sm">
                 <span className="text-muted-foreground">
