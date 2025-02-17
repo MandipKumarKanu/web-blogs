@@ -18,7 +18,7 @@ const {
   getPopularBlog,
   summarizeBlog,
   incrementShares,
-  getBlogsByCategoryPage
+  getBlogsByCategoryPage,
 } = require("../controllers/blogController");
 const roleMiddleware = require("../middleware/roleMiddleware");
 const router = express.Router();

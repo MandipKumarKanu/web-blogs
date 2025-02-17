@@ -1,6 +1,9 @@
 const Blog = require("../models/Blog");
 const mongoose = require("mongoose");
 const addCustomClassesToHtml = require("../utils/addCustomClass");
+const Notification = require("../models/Notification");
+// const { io } = require("../server");
+// const { post } = require("../routes/notificationRoute");
 
 const createBlog = async (req, res) => {
   const { title, content, tags, categories, image, scheduledPublishDate } =
@@ -121,7 +124,7 @@ const getBlogById = async (req, res) => {
 };
 
 const getBlogsByUserId = async (req, res, next) => {
-  const { page = 1, limit = 10 } = req.query;
+  const { page = 1, limit = null } = req.query;
   const skip = (page - 1) * limit;
 
   try {
@@ -141,7 +144,8 @@ const getBlogsByUserId = async (req, res, next) => {
 
     res.status(200).json({ blogs, totalPages, currentPage: page });
   } catch (error) {
-    res.status(500).error({ error });
+    console.error(error);
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -307,6 +311,8 @@ const blogLikes = async (req, res) => {
     const userId = req.user.id;
     const blog = await Blog.findById(req.params.id);
 
+    const io = req.app.get("io");
+
     if (!blog) {
       return res.status(404).json({ message: "Blog not found" });
     }
@@ -318,6 +324,16 @@ const blogLikes = async (req, res) => {
           { $addToSet: { likes: userId } },
           { new: true }
         );
+
+        const notification = new Notification({
+          userId: blog.author,
+          type: "like",
+          message: `User liked your post!`,
+          postId: blog._id,
+        });
+
+        await notification.save();
+        io.to(blog.author.toString()).emit("newNotification", notification);
       } else {
         await Blog.findByIdAndUpdate(
           req.params.id,
@@ -489,7 +505,7 @@ const getBlogsByCategoryPage = async (req, res) => {
       category,
       blogs: blogs
         .filter((blog) => blog.categories.includes(category))
-        .slice(0, 5), 
+        .slice(0, 5),
     }));
 
     return res.status(200).json({ blogsByCategoryGrp });

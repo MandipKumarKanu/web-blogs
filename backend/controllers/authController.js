@@ -20,6 +20,7 @@ const register = async (req, res) => {
         id: user._id,
         email: user.email,
         name: user.name,
+        profileImage: user.profileImage,
       },
     };
 
@@ -68,6 +69,7 @@ const login = async (req, res) => {
         id: user._id,
         email: user.email,
         name: user.name,
+        profileImage: user.profileImage,
       },
     };
     const accessToken = jwt.sign(payload, process.env.JWT_SECRET, {
@@ -165,6 +167,7 @@ const refresh = async (req, res) => {
         id: user._id,
         email: user.email,
         name: user.name,
+        profileImage: user.profileImage,
       },
     };
 
@@ -195,6 +198,12 @@ const getUserById = async (req, res) => {
 
 const updatePassword = async (req, res) => {
   const { oldPassword, newPassword } = req.body;
+  
+  if (!oldPassword || !newPassword) {
+    return res
+      .status(400)
+      .json({ message: "Both old and new passwords are required." });
+  }
 
   try {
     const user = await User.findById(req.user.id);
