@@ -9,7 +9,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-const IMGBB_API_KEY = "39155f715e13e66488803fb4160d90d0";
+const IMGBB_API_KEY = import.meta.env.VITE_IMGBB_API;
 
 const profileSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -198,7 +198,9 @@ const ProfilePage = () => {
   return (
     <div className="max-w-[1460px] mx-auto px-4 py-8 space-y-12">
       <div>
-        <h2 className="text-2xl font-bold mb-4 text-center">Profile Information</h2>
+        <h2 className="text-2xl font-bold mb-4 text-center">
+          Profile Information
+        </h2>
         <ProfileCard
           user={user}
           onUpdateProfile={() => setUpdateProfile(true)}

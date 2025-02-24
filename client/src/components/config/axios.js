@@ -1,7 +1,11 @@
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 
-export const baseURL = "http://localhost:5000/api";
+export const PROD_URL = "/api/api"; //production api
+export const DEV_URL = import.meta.env.VITE_DEV_URL; //development api
+
+// export const baseURL =  import.meta.env.MODE === "development" ? DEV_URL : PROD_URL;
+export const baseURL = PROD_URL;
 
 export const customAxios = axios.create({
   headers: {
@@ -26,7 +30,6 @@ export const setupInterceptors = (getToken, setToken, updateUser) => {
       const token = await tokenPromise;
       if (token) {
         const decoded = jwtDecode(token);
-        // console.log(decoded, "axios");
         config.headers.Authorization = `Bearer ${token}`;
       }
       return config;
@@ -42,9 +45,7 @@ export const setupInterceptors = (getToken, setToken, updateUser) => {
       if (error.response?.status === 401 && !originalRequest._isRetry) {
         originalRequest._isRetry = true;
         try {
-          const response = await axios.get(`${baseURL}/auth/refresh`, {
-            withCredentials: true,
-          });
+          const response = await customAxios.get("/auth/refresh");
 
           const { accessToken } = response.data;
           const decodedUser = jwtDecode(accessToken).user;

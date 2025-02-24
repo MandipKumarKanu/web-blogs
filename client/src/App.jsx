@@ -48,8 +48,8 @@ const App = () => {
     const fetchAccessToken = async () => {
       setLoading(true);
       try {
-        const url = `/auth/refresh/`;
-        const response = await customAxios.get(`${baseURL}${url}`);
+        const url = `auth/refresh/`;
+        const response = await customAxios.get(`${url}`);
         const token = response.data.accessToken;
         const decodedUser = jwtDecode(token).user;
         if (token) {

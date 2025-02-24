@@ -5,6 +5,7 @@ import { getRecommended } from "./api/blog";
 import { FaRegHeart } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
+import { Skeleton } from "./ui/skeleton";
 
 const BlogCard = ({ blog }) => {
   return (
@@ -20,9 +21,9 @@ const BlogCard = ({ blog }) => {
 
       <CardHeader className="space-y-2 p-4">
         <Link to={`/blog/${blog?._id}`}>
-        <h2 className="text-xl font-semibold text-foreground mb-4 leading-tight line-clamp-2 h-[3rem] overflow-hidden hover:text-primary transition-colors duration-300">
-          {blog.title}
-        </h2>
+          <h2 className="text-xl font-semibold text-foreground mb-4 leading-tight line-clamp-2 h-[3rem] overflow-hidden hover:text-primary transition-colors duration-300">
+            {blog.title}
+          </h2>
         </Link>
         <div className="text-sm text-muted-foreground">
           {blog?.categories?.[0]}
@@ -76,23 +77,25 @@ const RecommendedBlog = () => {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {[1, 2].map((n) => (
-          <Card
-            key={n}
-            className="animate-pulse hover:shadow-lg flex-shrink-0 w-full"
-          >
-            <div className="h-48 bg-muted" />
-            <CardHeader className="space-y-2">
-              <div className="h-4 w-24 bg-muted rounded" />
-              <div className="h-6 w-full bg-muted rounded" />
-            </CardHeader>
-            <CardFooter className="justify-between">
-              <div className="h-4 w-24 bg-muted rounded" />
-              <div className="h-4 w-24 bg-muted rounded" />
-            </CardFooter>
-          </Card>
-        ))}
+      <div className="container mx-auto py-12 px-4 sm:px-6 md:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {[1, 2, 3].map((n) => (
+            <Card
+              key={n}
+              className="animate-pulse hover:shadow-lg flex-shrink-0 w-full"
+            >
+              <Skeleton className="h-48" />
+              <CardHeader className="space-y-2">
+                <Skeleton className="h-4 w-24 rounded" />
+                <Skeleton className="h-6 w-full rounded" />
+              </CardHeader>
+              <CardFooter className="justify-between">
+                <Skeleton className="h-4 w-24 rounded" />
+                <Skeleton className="h-4 w-24 rounded" />
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
       </div>
     );
   }
@@ -111,8 +114,8 @@ const RecommendedBlog = () => {
         Similar News
       </h1>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {blogs.map((blog) => (
-          <BlogCard key={blog.id} blog={blog} />
+        {blogs.slice(0, 3).map((blog) => (
+          <BlogCard key={blog._id} blog={blog} />
         ))}
       </div>
     </div>

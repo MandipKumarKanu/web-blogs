@@ -37,7 +37,7 @@ import { CKEditorComp } from "@/components/ckEditor";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
-const IMGBB_API_KEY = "39155f715e13e66488803fb4160d90d0";
+const IMGBB_API_KEY = import.meta.env.VITE_IMGBB_API
 
 const PREDEFINED_TAGS = [
   { value: "Technology", label: "Technology" },

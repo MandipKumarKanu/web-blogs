@@ -8,7 +8,7 @@ export async function fetchCommentByBlog(blogId) {
 
 export async function createComment(blogId, content, parentComment = null) {
   const url = `comment`;
-  return customAxios.post(`${baseURL}/${url}`, {
+  return customAxios.post(`${url}`, {
     blogId,
     content,
     parentComment,
@@ -17,12 +17,12 @@ export async function createComment(blogId, content, parentComment = null) {
 
 export async function updateComment(cId, content) {
   const url = `comment/${cId}`;
-  return customAxios.patch(`${baseURL}/${url}`, {
+  return customAxios.patch(`${url}`, {
     content,
   });
 }
 
 export async function deleteComment(cId) {
   const url = `comment/${cId}`;
-  return customAxios.delete(`${baseURL}/${url}`);
+  return customAxios.delete(`${url}`);
 }

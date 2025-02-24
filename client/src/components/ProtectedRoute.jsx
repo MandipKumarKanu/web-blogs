@@ -13,8 +13,8 @@ const ProtectedRoute = () => {
   useEffect(() => {
     const fetchAccessToken = async () => {
       try {
-        const url = `/auth/refresh/`;
-        const response = await customAxios.get(`${baseURL}${url}`);
+        const url = `auth/refresh/`;
+        const response = await customAxios.get(`${url}`);
         const newToken = response.data.accessToken;
         const decodedUser = jwtDecode(newToken).user;
         if (newToken) {
