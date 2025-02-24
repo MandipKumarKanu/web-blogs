@@ -1,19 +1,19 @@
-name: Deploy Client to Firebase Hosting
+name: Preview Client on Firebase Hosting for PR
 
 on:
-  push:
+  pull_request:
     branches:
-      - main  # Change this to your deployment branch if different
+      - main
     paths:
-      - 'client/**'  # Trigger workflow only when files in client/ change
+      - 'client/**'  # Run only when files in client/ change
 
 jobs:
-  build_and_deploy:
+  preview:
     runs-on: ubuntu-latest
 
     defaults:
       run:
-        working-directory: client  # Set working directory to client folder
+        working-directory: client  # Run commands inside client/
 
     steps:
       - name: Checkout Repository
@@ -22,18 +22,19 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 18  # Change to match your project
+          node-version: 18
 
       - name: Install Dependencies
-        run: npm install  # Use yarn or pnpm if needed
+        run: npm install
 
       - name: Build Project
         run: npm run build
 
-      - name: Deploy to Firebase
+      - name: Deploy Preview to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
           firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}"
-          channelId: live  # Deploys to production
+          channelId: preview
+          entryPoint: client  # 🔥 Tell Firebase to look inside client/
           projectId: future-blogs
