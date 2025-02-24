@@ -25,6 +25,7 @@ import { RWebShare } from "react-web-share";
 import BlogSkeleton from "@/components/BlogSkeleton";
 import ShrinkDescription from "@/components/ShrinkDescription";
 import CommentsDialog from "@/components/CommentSection";
+import RecommendedBlog from "@/components/RecommendedBlog";
 
 export default function BlogPage() {
   const [loading, setLoading] = useState(true);
@@ -39,8 +40,6 @@ export default function BlogPage() {
   const [commentCount, setCommentCount] = useState(0);
 
   const { token, user } = useAuthStore();
-  // console.log(user)
-
   const navigate = useNavigate();
   const { id } = useParams();
 
@@ -266,17 +265,13 @@ export default function BlogPage() {
           className="w-full h-full object-cover transition-transform duration-500"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent pointer-events-none" />
-        <h2 className="absolute bottom-6 left-1/2 -translate-x-1/2 p-4 text-center text-xl md:text-3xl lg:text-4xl font-bold text-foreground/90 leading-tight drop-shadow-lg max-w-[95%] sm:max-w-[70%]">
+        <h2 className="absolute bottom-0 left-0 right-0 mx-auto p-4 text-center text-lg sm:text-xl md:text-3xl lg:text-4xl font-bold text-foreground/90 leading-tight drop-shadow-lg max-w-[90%] sm:max-w-[80%] md:max-w-[70%] lg:max-w-[60%]">
           {blog.title}
         </h2>
       </div>
 
       <div className="container mx-auto py-12 px-4 sm:px-6 md:px-8 grid grid-cols-1 lg:grid-cols-3 gap-12">
-        <div className="lg:col-span-2 space-y-8">
-          <ShrinkDescription desc={blogContent} />
-        </div>
-
-        <aside className="space-y-8 lg:sticky top-20 self-start">
+        <aside className="order-first lg:order-last space-y-8 lg:sticky top-20 self-start">
           <div className="flex items-center gap-4 text-muted-foreground">
             <div
               className={`flex items-center gap-2 ${
@@ -363,7 +358,13 @@ export default function BlogPage() {
             {renderSummaryContent()}
           </div>
         </aside>
+
+        <div className="order-last lg:order-first lg:col-span-2 space-y-8">
+          <ShrinkDescription desc={blogContent} />
+        </div>
       </div>
+
+      <RecommendedBlog />
       <CommentsDialog
         blogId={id}
         isOpen={commentsOpen}

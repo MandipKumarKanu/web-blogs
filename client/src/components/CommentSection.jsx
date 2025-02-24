@@ -149,7 +149,10 @@ const CommentItem = ({
       <div className={`${containerClass} space-y-2`}>
         <div className="flex items-start gap-3">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={comment.author?.profileImage} />
+            <AvatarImage
+              src={comment.author?.profileImage}
+              className="object-cover"
+            />
             <AvatarFallback>{comment.author?.name?.charAt(0)}</AvatarFallback>
           </Avatar>
           <div className="flex-1">

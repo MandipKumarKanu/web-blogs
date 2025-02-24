@@ -25,6 +25,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuthStore } from "@/store/useAuthStore";
+import Notification from "./Notification";
 
 const Header = () => {
   const { theme, setTheme } = useTheme();
@@ -100,13 +101,14 @@ const Header = () => {
 
         <div className="hidden md:flex items-center gap-3">
           {user ? (
-            <div className="flex items-center gap-2">
+            <div iv className="flex items-center gap-2">
+              {/* <Notification /> */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="flex items-center gap-2 p-1 rounded hover:bg-accent/80 transition-colors">
                     <Avatar className="h-9 w-9">
                       <AvatarImage
-                        src={user.image}
+                        src={user.profileImage}
                         alt="User Avatar"
                         className="object-cover"
                       />
@@ -134,7 +136,7 @@ const Header = () => {
             </div>
           ) : (
             <Link to="/login" className="flex items-center">
-              <User className="h-9 w-9" />
+              <User className="h-6 w-6" />
             </Link>
           )}
 
@@ -142,7 +144,8 @@ const Header = () => {
         </div>
 
         <div className="flex md:hidden items-center gap-2">
-          <ThemeToggle />
+          {/* <Notification /> */}
+
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
               <button
@@ -154,6 +157,7 @@ const Header = () => {
             </SheetTrigger>
             <SheetContent className="flex flex-col h-full w-[300px] sm:w-[380px]">
               <SheetHeader className="border-b pb-6 mb-6">
+                <ThemeToggle />
                 {user ? (
                   <Link
                     to="/profile"

@@ -1,20 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { Loader2 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
-// import ProfileCard from "./ProfileCard";
-// import UpdateProfileDialog from "./UpdateProfileDialog";
-// import UpdatePasswordDialog from "./UpdatePasswordDialog";
-// import UserBlogs from "./UserBlogs";
 import { blogByUserId, updatePass, updateUser } from "@/components/api/user";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import ProfileCard from "@/components/ProfileCard";
 import UpdateProfileDialog from "@/components/UpdateProfileDialog";
 import UpdatePasswordDialog from "@/components/UpdatePasswordDialog";
 import UserBlogs from "@/components/UserBlogs";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-// Schemas
+const IMGBB_API_KEY = "39155f715e13e66488803fb4160d90d0";
+
 const profileSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
@@ -34,17 +30,11 @@ const passwordSchema = z
     path: ["confirmPassword"],
   });
 
-const ProfilePage = () => {
-  const { user, logout, token } = useAuthStore();
-  const [blogs, setBlogs] = useState([]);
-  const [loadingBlogs, setLoadingBlogs] = useState(true);
-  const [updating, setUpdating] = useState(false);
-  const [updateProfile, setUpdateProfile] = useState(false);
-  const [updatePassword, setUpdatePassword] = useState(false);
-  const [imagePreview, setImagePreview] = useState(null);
+const useProfileForm = (user) => {
+  const [imagePreview, setImagePreview] = useState(user?.profileImage);
   const [isDragging, setIsDragging] = useState(false);
 
-  const profileForm = useForm({
+  const form = useForm({
     resolver: zodResolver(profileSchema),
     defaultValues: {
       name: user?.name || "",
@@ -52,6 +42,63 @@ const ProfilePage = () => {
       image: null,
     },
   });
+
+  const handleImageChange = (file) => {
+    if (file) {
+      form.setValue("image", file);
+      const reader = new FileReader();
+      reader.onloadend = () => setImagePreview(reader.result);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleDragDrop = {
+    onDragOver: (e) => {
+      e.preventDefault();
+      setIsDragging(true);
+    },
+    onDragLeave: () => setIsDragging(false),
+    onDrop: (e) => {
+      e.preventDefault();
+      setIsDragging(false);
+      const file = e.dataTransfer.files?.[0];
+      if (file?.type.startsWith("image/")) {
+        handleImageChange(file);
+      }
+    },
+  };
+
+  const removeImage = () => {
+    form.setValue("image", null);
+    setImagePreview(null);
+  };
+
+  return {
+    form,
+    imagePreview,
+    isDragging,
+    handleImageChange,
+    handleDragDrop,
+    removeImage,
+  };
+};
+
+const ProfilePage = () => {
+  const { user, token } = useAuthStore();
+  const [blogs, setBlogs] = useState([]);
+  const [loadingBlogs, setLoadingBlogs] = useState(true);
+  const [updating, setUpdating] = useState(false);
+  const [updateProfile, setUpdateProfile] = useState(false);
+  const [updatePassword, setUpdatePassword] = useState(false);
+
+  const {
+    form: profileForm,
+    imagePreview,
+    isDragging,
+    handleImageChange,
+    handleDragDrop,
+    removeImage,
+  } = useProfileForm(user);
 
   const passwordForm = useForm({
     resolver: zodResolver(passwordSchema),
@@ -63,8 +110,10 @@ const ProfilePage = () => {
   });
 
   useEffect(() => {
-    if (user && token) fetchUserBlogs();
-  }, [user]);
+    if (user && token) {
+      fetchUserBlogs();
+    }
+  }, [user, token]);
 
   useEffect(() => {
     if (user) {
@@ -73,15 +122,13 @@ const ProfilePage = () => {
         email: user.email || "",
         image: null,
       });
-      setImagePreview(user?.profileImage);
     }
   }, [user]);
 
   const fetchUserBlogs = async () => {
     try {
       const response = await blogByUserId(user?.id || user?._id);
-      const data = response.data.blogs;
-      setBlogs(data);
+      setBlogs(response.data.blogs);
     } catch (error) {
       console.error("Error fetching blogs:", error);
     } finally {
@@ -89,40 +136,18 @@ const ProfilePage = () => {
     }
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      profileForm.setValue("image", file);
-      const reader = new FileReader();
-      reader.onloadend = () => setImagePreview(reader.result);
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = () => {
-    setIsDragging(false);
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file && file.type.startsWith("image/")) {
-      profileForm.setValue("image", file);
-      const reader = new FileReader();
-      reader.onloadend = () => setImagePreview(reader.result);
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const removeImage = () => {
-    profileForm.setValue("image", null);
-    setImagePreview(null);
+  const uploadImage = async (file) => {
+    const formData = new FormData();
+    formData.append("image", file);
+    const response = await fetch(
+      `https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`,
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+    const data = await response.json();
+    return data.data.url;
   };
 
   const onSubmitProfile = async (data) => {
@@ -130,27 +155,18 @@ const ProfilePage = () => {
     try {
       let imageUrl = user.profileImage;
       if (data.image) {
-        const formData = new FormData();
-        formData.append("image", data.image);
-        const imgbbRes = await fetch(
-          `https://api.imgbb.com/1/upload?key=39155f715e13e66488803fb4160d90d0`,
-          {
-            method: "POST",
-            body: formData,
-          }
-        );
-        const imgbbData = await imgbbRes.json();
-        imageUrl = imgbbData.data.url;
+        imageUrl = await uploadImage(data.image);
       }
+
       const response = await updateUser({
         name: data.name,
         email: data.email,
         profileImage: imageUrl,
       });
+
       if (response.status === 201) {
         setUpdateProfile(false);
         profileForm.reset();
-        setImagePreview(null);
         useAuthStore.setState({ user: response.data });
       }
     } catch (error) {
@@ -167,6 +183,7 @@ const ProfilePage = () => {
         oldPassword: data.currentPassword,
         newPassword: data.newPassword,
       });
+
       if (response.status === 201) {
         setUpdatePassword(false);
         passwordForm.reset();
@@ -179,36 +196,45 @@ const ProfilePage = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-5xl space-y-12">
-      <ProfileCard
-        user={user}
-        onUpdateProfile={() => setUpdateProfile(true)}
-        onUpdatePassword={() => setUpdatePassword(true)}
-      />
+    <div className="max-w-[1460px] mx-auto px-4 py-8 space-y-12">
+      <div>
+        <h2 className="text-2xl font-bold mb-4 text-center">Profile Information</h2>
+        <ProfileCard
+          user={user}
+          onUpdateProfile={() => setUpdateProfile(true)}
+          onUpdatePassword={() => setUpdatePassword(true)}
+        />
+      </div>
 
       <UpdateProfileDialog
         open={updateProfile}
         onOpenChange={setUpdateProfile}
-        profileForm={{ ...profileForm, onSubmit: onSubmitProfile }}
+        profileForm={{
+          ...profileForm,
+          onSubmit: profileForm.handleSubmit(onSubmitProfile),
+        }}
         updating={updating}
         imagePreview={imagePreview}
         isDragging={isDragging}
-        handleDragOver={handleDragOver}
-        handleDragLeave={handleDragLeave}
-        handleDrop={handleDrop}
-        handleImageChange={handleImageChange}
+        handleDragDrop={handleDragDrop}
+        handleImageChange={(e) => handleImageChange(e.target.files?.[0])}
         removeImage={removeImage}
       />
 
       <UpdatePasswordDialog
         open={updatePassword}
         onOpenChange={setUpdatePassword}
-        passwordForm={passwordForm}
+        passwordForm={{
+          ...passwordForm,
+          onSubmit: passwordForm.handleSubmit(onSubmitPassword),
+        }}
         updating={updating}
-        onSubmitPassword={onSubmitPassword}
       />
 
-      <UserBlogs blogs={blogs} loadingBlogs={loadingBlogs} />
+      <div>
+        <h2 className="text-2xl font-bold mb-4">Your Blogs</h2>
+        <UserBlogs blogs={blogs} loadingBlogs={loadingBlogs} />
+      </div>
     </div>
   );
 };

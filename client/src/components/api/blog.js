@@ -48,6 +48,16 @@ export async function summarizeBlog(id) {
   return axios.get(`${baseURL}/${url}`);
 }
 
+export async function popMonth() {
+  const url = `blogs/popularmonth/`;
+  return axios.get(`${baseURL}/${url}`);
+}
+
+export async function getRecommended() {
+  const url = `blogs/recommended/`;
+  return customAxios.get(`${baseURL}/${url}`);
+}
+
 export async function likeBlog(id, status = undefined) {
   const url = `blogs/like/${id}`;
   return customAxios.post(`${baseURL}/${url}`, {
@@ -57,16 +67,12 @@ export async function likeBlog(id, status = undefined) {
 
 export async function incView(id) {
   const url = `blogs/views/${id}`;
-  return axios.patch(`${baseURL}/${url}`, {
-    status,
-  });
+  return axios.patch(`${baseURL}/${url}`);
 }
 
 export async function incShare(id) {
   const url = `blogs/shares/${id}`;
-  return axios.patch(`${baseURL}/${url}`, {
-    status,
-  });
+  return axios.patch(`${baseURL}/${url}`);
 }
 
 export async function getByCategory(ct) {
@@ -77,4 +83,9 @@ export async function getByCategory(ct) {
 export async function getByCategoryGrp(cts) {
   const url = `blogs/by-categories`;
   return axios.post(`${baseURL}/${url}`, cts);
+}
+
+export async function onUpdateBlog(blogId, data) {
+  const url = `blogs/${blogId}`;
+  return customAxios.patch(`${baseURL}/${url}`, data);
 }

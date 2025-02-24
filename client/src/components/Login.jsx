@@ -25,7 +25,7 @@ const loginSchema = z.object({
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const { login, loading, error } = useAuthStore();
+  const { login, loading } = useAuthStore();
 
   const navigate = useNavigate();
 

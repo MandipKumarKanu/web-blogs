@@ -31,11 +31,17 @@ import {
   TableProperties,
   TableColumnResize,
   Link,
-  AutoLink, // <-- Import AutoLink
+  AutoLink,
 } from "ckeditor5";
 
 import "ckeditor5/ckeditor5.css";
 import "./ck.css";
+
+const WordCount = ({ content }) => {
+  const text = content.replace(/<[^>]*>/g, "").trim();
+  const count = text ? text.split(/\s+/).length : 0;
+  return <div className="text-sm text-gray-600">Word Count: {count}</div>;
+};
 
 export const CKEditorComp = ({ content, setContent, disableCK }) => {
   const editorRef = useRef(null);
@@ -69,7 +75,7 @@ export const CKEditorComp = ({ content, setContent, disableCK }) => {
         "specialCharacters",
         "highlight",
         "|",
-        "link", // Keep Link for editing links
+        "link",
         "|",
         "bulletedList",
         "numberedList",
@@ -111,7 +117,7 @@ export const CKEditorComp = ({ content, setContent, disableCK }) => {
       TableProperties,
       TableColumnResize,
       Link,
-      AutoLink, // <-- Add AutoLink here
+      AutoLink,
     ],
     balloonToolbar: ["bold", "italic", "|", "bulletedList", "numberedList"],
     fontFamily: {
@@ -144,26 +150,37 @@ export const CKEditorComp = ({ content, setContent, disableCK }) => {
   };
 
   return (
-    <div className="main-container rounded-md">
-      <div className="editor-container editor-container_classic-editor">
+    // <div className="main-container rounded-md shadow-lg p-4">
+      <div className="editor-container editor-container_classic-editor ">
         <div className="editor-container__editor">
           {isLayoutReady && (
-            <CKEditor
-              editor={ClassicEditor}
-              data={content}
-              config={editorConfig}
-              disabled={disableCK}
-              onReady={(editor) => {
-                editorRef.current = editor;
-              }}
-              onChange={(_, editor) => {
-                const data = editor.getData();
-                setContent(data);
-              }}
-            />
+            <>
+              <CKEditor
+                editor={ClassicEditor}
+                data={content}
+                config={editorConfig}
+                disabled={disableCK}
+                onReady={(editor) => {
+                  editorRef.current = editor;
+                }}
+                onChange={(_, editor) => {
+                  const data = editor.getData();
+                  setContent(data);
+                }}
+              />
+              {/* <div className="flex items-center justify-between mt-3">
+                <button
+                  onClick={() => setContent("")}
+                  className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                >
+                  Clear Content
+                </button>
+                <WordCount content={content} />
+              </div> */}
+            </>
           )}
         </div>
-      </div>
+      {/* </div> */}
     </div>
   );
 };

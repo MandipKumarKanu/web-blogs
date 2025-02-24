@@ -16,7 +16,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { Eye, EyeOff, Mail, Lock, User, AtSign } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const signupSchema = z
   .object({
@@ -46,6 +46,8 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const { signUp, loading } = useAuthStore();
 
+  const navigate = useNavigate();
+
   const {
     register,
     handleSubmit,
@@ -69,7 +71,7 @@ const Register = () => {
       password: data.password,
     };
     try {
-      signUp(dataToSend);
+      signUp(dataToSend, navigate);
     } catch (err) {
       console.error(err);
     }
@@ -120,26 +122,26 @@ const Register = () => {
                 </div>
               </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="username">Username</Label>
-                  <div className="relative">
-                    <Input
-                      id="username"
-                      type="text"
-                      placeholder="johndoe123"
-                      className="pl-10"
-                      {...register("username")}
-                    />
-                    <AtSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  </div>
-                  {errors.username && (
-                    <Alert variant="destructive" className="py-2 text-sm mt-1">
-                      <AlertDescription>
-                        {errors.username.message}
-                      </AlertDescription>
-                    </Alert>
-                  )}
+              <div className="space-y-2">
+                <Label htmlFor="username">Username</Label>
+                <div className="relative">
+                  <Input
+                    id="username"
+                    type="text"
+                    placeholder="johndoe123"
+                    className="pl-10"
+                    {...register("username")}
+                  />
+                  <AtSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 </div>
+                {errors.username && (
+                  <Alert variant="destructive" className="py-2 text-sm mt-1">
+                    <AlertDescription>
+                      {errors.username.message}
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
 
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>

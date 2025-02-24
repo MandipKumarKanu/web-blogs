@@ -206,35 +206,35 @@ const Footer = () => {
               Privacy
             </a>
             <a
-              href="/rss"
+              href="/faq"
               className="hover:text-primary transition-colors flex items-center"
             >
               <Rss className="w-4 h-4 mr-1 transform hover:scale-110" />
-              RSS Feed
+              FAQ
             </a>
           </div>
           <div className="flex items-center space-x-4 mb-4 md:mb-0">
             <a
-              href="https://twitter.com"
+              href="https://twitter.com/mand1pshah"
               className="hover:text-primary transition-colors transform hover:scale-110"
             >
               <Twitter className="w-5 h-5" />
             </a>
             <a
-              href="mailto:hello@blog.com"
+              href="mailto:mandipshah3@gmail.com"
               className="hover:text-primary transition-colors transform hover:scale-110"
             >
               <Mail className="w-5 h-5" />
             </a>
             <a
-              href="https://linkedin.com"
+              href="https://www.linkedin.com/in/mandip-kanu-589790168/"
               className="hover:text-primary transition-colors transform hover:scale-110"
             >
               <Linkedin className="w-5 h-5" />
             </a>
           </div>
           <div className="text-sm">
-            © {new Date().getFullYear()} Blog Name. All rights reserved.
+            © {new Date().getFullYear()} FutureBlog. All rights reserved.
           </div>
         </div>
       </div>

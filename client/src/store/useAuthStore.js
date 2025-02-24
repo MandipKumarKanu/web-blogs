@@ -30,23 +30,24 @@ export const useAuthStore = create((set) => ({
     }
   },
 
-  signUp: async (data) => {
+  signUp: async (data, navigate) => {
     set({ loading: true, error: null });
     try {
       const response = await authSignUp(data);
       const token = response.data.accessToken;
+      console.log(token);
       const decodedUser = jwtDecode(token).user;
       set({ loading: false, user: decodedUser, token });
       toast.success(response.data.message);
+      navigate("/", { replace: true });
     } catch (error) {
       console.log(error);
       toast.error(getErrorMessage(error));
-
       set({ error: error, loading: false });
     }
   },
 
-  logout: async()=>{
-    console.log("logout")
-  }
+  logout: async () => {
+    console.log("logout");
+  },
 }));

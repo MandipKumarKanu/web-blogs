@@ -9,7 +9,7 @@ import Register from "./components/Register";
 import { Toaster } from "./components/ui/sonner";
 import ForgotPassword from "./components/ForgotPassword";
 import Add from "./Features/AddBlog";
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import {
   baseURL,
   customAxios,
@@ -27,9 +27,16 @@ import TopicPage from "./pages/TopicPage";
 import CategoryPage from "./pages/CategoryPage";
 import ProfilePage from "./pages/ProfilePage";
 import Notification from "./components/Notification";
+// import ProtectedRoute from "./components/ProtectedRoute";
+import Loader from "./components/Loader";
+import ProtectedRoute from "./components/ProtectedRoute";
+import FAQPage from "./components/FAQ";
+const EditBlog = lazy(() => import("./components/EditBlog"));
 
 const App = () => {
   const { token, setUser, setToken } = useAuthStore();
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     setupInterceptors(() => token, setToken, setUser);
   }, []);
@@ -39,6 +46,7 @@ const App = () => {
 
   useEffect(() => {
     const fetchAccessToken = async () => {
+      setLoading(true);
       try {
         const url = `/auth/refresh/`;
         const response = await customAxios.get(`${baseURL}${url}`);
@@ -51,34 +59,53 @@ const App = () => {
       } catch (error) {
         localStorage.setItem("loggedIn", "");
       } finally {
+        setLoading(false);
       }
     };
 
     if (!token) {
       fetchAccessToken();
     } else {
-      // setLoading(false);
+      setLoading(false);
     }
   }, [token, setToken, setUser]);
+
+  if (loading) {
+    return <Loader />;
+  }
+
   return (
     <ThemeProvider defaultTheme="light">
       <Header />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/blogs" element={<AllBlog />} />
-        <Route path="/blog/:id" element={<BlogPage />} />
-        <Route path="/allblogs" element={<ApproveBlog />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/category/:name" element={<CategoryPage />} />
-        <Route path="/popular" element={<PopularBlog />} />
-        <Route path="/topics" element={<TopicPage />} />
-        <Route path="/new" element={<NewBlog />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/forget" element={<ForgotPassword />} />
-        <Route path="/add" element={<Add />} />
-      </Routes>
-      <Notification />
+      <div className="min-h-[100dvh]">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/blogs" element={<AllBlog />} />
+          <Route path="/blog/:id" element={<BlogPage />} />
+          <Route path="/category/:name" element={<CategoryPage />} />
+          <Route path="/popular" element={<PopularBlog />} />
+          <Route path="/topics" element={<TopicPage />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forget" element={<ForgotPassword />} />
+          <Route path="/new" element={<NewBlog />} />
+          <Route path="/faq" element={<FAQPage />} />
+
+          <Route element={<ProtectedRoute />}>
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/add" element={<Add />} />
+            <Route path="/allblogs" element={<ApproveBlog />} />
+            <Route
+              path="/edit/:blogId"
+              element={
+                <Suspense fallback={<div>Loading editor...</div>}>
+                  <EditBlog />
+                </Suspense>
+              }
+            />
+          </Route>
+        </Routes>
+      </div>
       <Footer />
       <Toaster richColors />
     </ThemeProvider>

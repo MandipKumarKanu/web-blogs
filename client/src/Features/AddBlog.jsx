@@ -181,15 +181,15 @@ const BlogForm = () => {
         data.scheduledPublishDate = null;
       }
 
-      console.log({
-        ...data,
-        imageUrl,
-        tags: selectedTags,
-        categories: selectedCategories,
-        content: desc,
-      });
+      // console.log({
+      //   ...data,
+      //   imageUrl,
+      //   tags: selectedTags,
+      //   categories: selectedCategories,
+      //   content: desc,
+      // });
 
-      await createBlog({
+      const res = await createBlog({
         title: data.title,
         content: desc,
         tags: selectedTags,
@@ -197,7 +197,7 @@ const BlogForm = () => {
         image: imageUrl,
         scheduledPublishDate: data.scheduledPublishDate,
       });
-      toast.success("Blog submitted for review");
+      toast.success(res.data.message);
 
       reset();
       setSelectedCategories([]);
@@ -212,7 +212,7 @@ const BlogForm = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 flex items-center justify-center h-[calc(100dvh-80px)]">
       <Card className="max-w-3xl mx-auto">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">

@@ -39,3 +39,7 @@
 .ck-content a {
   text-decoration: underline;
 }
+
+.ck-content{
+  max-height: 500px;
+}

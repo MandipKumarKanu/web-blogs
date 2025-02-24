@@ -5,6 +5,7 @@ import {
   rejectBlog,
   getLatestBlogsByViews,
   getPopularBlogs,
+  popMonth,
 } from "@/components/api/blog";
 import getErrorMessage from "@/components/utils/getErrorMsg";
 import { toast } from "sonner";
@@ -19,6 +20,9 @@ export const useBlogStore = create((set) => ({
   weekLoad: true,
   weekError: true,
   weeklyPopularBlogs: [],
+  popularMonthBlog: [],
+  popLoading: true,
+  popError: null,
 
   getAllBlogs: async (pg, limit) => {
     set({ loading: true, error: null });
@@ -51,6 +55,17 @@ export const useBlogStore = create((set) => ({
       set({ weekLoad: false, weeklyPopularBlogs: blogs, weekError: null });
     } catch (error) {
       set({ weekError: getErrorMessage(error), weekLoad: false });
+    }
+  },
+
+  getPopularMonthBlog: async () => {
+    set({ popLoading: true, popError: null });
+    try {
+      const response = await popMonth();
+      const { blogs } = response.data;
+      set({ popLoading: false, popularMonthBlog: blogs, popError: null });
+    } catch (error) {
+      set({ popError: getErrorMessage(error), popLoading: false });
     }
   },
 

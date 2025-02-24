@@ -95,7 +95,9 @@ const TopicPage = () => {
                 Insights in <span className="text-primary">{category}</span>
               </h2>
               <button className="flex items-center gap-2 text-primary hover:text-primary/80 transition-colors">
-                <span>Explore All</span>
+                <Link to={`/category/${category}`}>
+                  <span>Explore All</span>
+                </Link>
                 <ArrowRight className="h-4 w-4" />
               </button>
             </div>

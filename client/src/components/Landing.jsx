@@ -58,7 +58,7 @@ const Landing = () => {
                 </div>
               </div>
               <div className="absolute bottom-6 left-6 right-6 z-20 space-y-4">
-                <h2 className="text-3xl md:text-4xl font-bold text-white leading-tight drop-shadow-lg line-clamp-3">
+                <h2 className="text-3xl md:text-4xl font-bold text-white leading-tight drop-shadow-lg line-clamp-3 ">
                   {weeklyPopularBlogs[0]?.title}
                 </h2>
                 <Button className="rounded-2xl px-6 py-5 backdrop-blur-sm bg-white/20 hover:bg-white/30 text-white">
@@ -76,7 +76,7 @@ const Landing = () => {
               <span className="text-sm font-medium text-purple-600">
                 {weeklyPopularBlogs[1]?.categories[0]}
               </span>
-              <h3 className="text-2xl font-bold mt-2 mb-3 line-clamp-2">
+              <h3 className="text-2xl font-bold mt-2 mb-3 line-clamp-2 hover:text-primary transition-colors duration-300">
                 {weeklyPopularBlogs[1]?.title}
               </h3>
               <div className="text-muted-foreground line-clamp-3">
