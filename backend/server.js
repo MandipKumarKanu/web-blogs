@@ -8,14 +8,14 @@ const blogRoutes = require("./routes/blogRoutes");
 const commentRoutes = require("./routes/commentRoutes");
 const notificationRoute = require("./routes/notificationRoute");
 const startCronJob = require("./corn");
-const socketIo = require("socket.io");
+// const socketIo = require("socket.io");
 const http = require("http");
-const setupSocket = require("./socket");
+// const setupSocket = require("./socket");
 
 const app = express();
 const server = http.createServer(app);
-const io = setupSocket(server);
-app.set("io", io);
+// const io = setupSocket(server);
+// app.set("io", io);
 
 connectDB();
 

@@ -21,7 +21,7 @@ const BlogSchema = new mongoose.Schema(
     publishedAt: { type: Date },
     status: {
       type: String,
-      enum: ["pending", "approved", "published", "rejected"],
+      enum: ["pending", "approved", "published", "rejected", "scheduled"],
       default: "pending",
     },
     rejectionMessage: { type: String, required: false },

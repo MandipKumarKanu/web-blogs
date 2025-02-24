@@ -2,6 +2,8 @@ const Blog = require("../models/Blog");
 const mongoose = require("mongoose");
 const addCustomClassesToHtml = require("../utils/addCustomClass");
 const Notification = require("../models/Notification");
+const { updateUserInterests } = require("../utils/helper");
+const User = require("../models/User");
 // const { io } = require("../server");
 // const { post } = require("../routes/notificationRoute");
 
@@ -18,7 +20,25 @@ const createBlog = async (req, res) => {
   try {
     const styledContent = addCustomClassesToHtml(content);
 
-    const status = req.user.role === "admin" ? "published" : "pending";
+    let status;
+    let scheduled = false;
+
+    if (req.user.role === "admin") {
+      if (scheduledPublishDate) {
+        status = "scheduled";
+        scheduled = true;
+      } else {
+        status = "published";
+      }
+    } else {
+      if (scheduledPublishDate) {
+        status = "pending";
+        scheduled = true;
+      } else {
+        status = "pending";
+      }
+    }
+
     const publishDate = scheduledPublishDate
       ? new Date(scheduledPublishDate)
       : null;
@@ -31,19 +51,13 @@ const createBlog = async (req, res) => {
       image,
       author: req.user.id,
       scheduledPublishDate: publishDate,
-      scheduled: !!scheduledPublishDate,
+      scheduled,
       status,
-      publishedAt: req.user.role === "admin" ? new Date() : null,
+      publishedAt: status === "published" ? new Date() : null,
     });
 
     res.status(201).json({
-      message: `Blog ${
-        req.user.role === "admin"
-          ? "published"
-          : scheduledPublishDate
-          ? "scheduled"
-          : "pending"
-      } successfully`,
+      message: `Blog ${status} successfully`,
       blog,
     });
   } catch (error) {
@@ -53,7 +67,6 @@ const createBlog = async (req, res) => {
 
 const getAllBlogs = async (req, res, next) => {
   const { page = 1, limit = 10 } = req.query;
-  // console.log(page, limit);
   const skip = (page - 1) * limit;
 
   try {
@@ -131,7 +144,8 @@ const getBlogsByUserId = async (req, res, next) => {
     const blogs = await Blog.find({ author: req.params.authorId })
       .populate("author", "name userName email profileImage")
       .skip(skip)
-      .limit(limit);
+      .limit(limit)
+      .sort({ publishedAt: -1 });
 
     const totalBlogs = await Blog.countDocuments({
       author: req.params.authorId,
@@ -214,8 +228,10 @@ const summarizeBlog = async (req, res) => {
 };
 
 const updateBlog = async (req, res) => {
-  const { title, content } = req.body;
+  const { title, content, image, categories, tags } = req.body;
   try {
+    const styledContent = addCustomClassesToHtml(content);
+
     const blog = await Blog.findById(req.params.id);
 
     if (!blog) {
@@ -228,13 +244,24 @@ const updateBlog = async (req, res) => {
         .json({ message: "You do not have permission to update this blog." });
     }
 
-    blog.title = title;
-    blog.content = content;
-    await blog.save();
+    const updatedBlog = await Blog.findByIdAndUpdate(
+      req.params.id,
+      {
+        title,
+        content: styledContent,
+        image,
+        categories,
+        tags,
+      },
+      { new: true }
+    ).populate("author", "name email");
 
-    res.status(200).json({ message: "Blog updated successfully", blog });
+    res
+      .status(200)
+      .json({ message: "Blog updated successfully", blog: updatedBlog });
   } catch (error) {
-    return res.status(400).json({ message: "Invalid token" });
+    console.error("Error updating blog:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -251,12 +278,21 @@ const approveBlog = async (req, res) => {
     return res.status(404).json({ message: "Blog not found" });
   }
 
+  const now = new Date();
+
   if (blog.scheduled) {
-    blog.status = "approved";
+    if (now >= blog.scheduledPublishDate) {
+      blog.status = "published";
+      blog.publishedAt = now;
+    } else {
+      blog.status = "scheduled";
+      blog.publishedAt = null;
+    }
   } else {
     blog.status = "published";
-    blog.publishedAt = new Date();
+    blog.publishedAt = now;
   }
+
   await blog.save();
 
   res.status(200).json({ message: "Blog approved successfully", blog });
@@ -311,7 +347,7 @@ const blogLikes = async (req, res) => {
     const userId = req.user.id;
     const blog = await Blog.findById(req.params.id);
 
-    const io = req.app.get("io");
+    // const io = req.app.get("io");
 
     if (!blog) {
       return res.status(404).json({ message: "Blog not found" });
@@ -325,15 +361,16 @@ const blogLikes = async (req, res) => {
           { new: true }
         );
 
-        const notification = new Notification({
-          userId: blog.author,
-          type: "like",
-          message: `User liked your post!`,
-          postId: blog._id,
-        });
+        // const notification = new Notification({
+        //   userId: blog.author,
+        //   type: "like",
+        //   message: `User liked your post!`,
+        //   postId: blog._id,
+        // });
 
-        await notification.save();
-        io.to(blog.author.toString()).emit("newNotification", notification);
+        // await notification.save();
+        // io.to(blog.author.toString()).emit("newNotification", notification);
+        updateUserInterests(userId, blog.tags);
       } else {
         await Blog.findByIdAndUpdate(
           req.params.id,
@@ -459,6 +496,53 @@ const getPopularBlog = async (req, res) => {
   }
 };
 
+const getPopularBlogsOfMonth = async (req, res) => {
+  try {
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+
+    const blogs = await Blog.aggregate([
+      {
+        $match: { status: "published", publishedAt: { $gte: oneMonthAgo } },
+      },
+      {
+        $sort: { views: -1, publishedAt: -1 },
+      },
+      { $limit: 3 },
+      {
+        $lookup: {
+          from: "users",
+          localField: "author",
+          foreignField: "_id",
+          as: "author",
+        },
+      },
+      {
+        $unwind: "$author",
+      },
+      {
+        $project: {
+          title: 1,
+          content: 1,
+          views: 1,
+          publishedAt: 1,
+          categories: 1,
+          image: 1,
+          "author.name": 1,
+          "author.userName": 1,
+          "author.email": 1,
+          "author.profileImage": 1,
+        },
+      },
+    ]);
+
+    res.status(200).json({ blogs });
+  } catch (error) {
+    console.error("Error fetching popular blogs of the month:", error);
+    res.status(500).json({ error });
+  }
+};
+
 const incrementViews = async (req, res) => {
   try {
     const blog = await Blog.findById(req.params.id);
@@ -515,6 +599,25 @@ const getBlogsByCategoryPage = async (req, res) => {
   }
 };
 
+const getRecommendedBlogs = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    const blog = await Blog.find({
+      tags: { $in: user.interests },
+      status: "published",
+    })
+      .sort({ likes: -1, createdAt: -1 })
+      .limit(5);
+
+    return res.status(200).json({ blog });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createBlog,
   getAllBlogs,
@@ -534,4 +637,6 @@ module.exports = {
   summarizeBlog,
   incrementShares,
   getBlogsByCategoryPage,
+  getPopularBlogsOfMonth,
+  getRecommendedBlogs
 };

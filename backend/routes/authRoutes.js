@@ -8,7 +8,7 @@ const {
   getUserById,
   updatePassword,
   getAllUser,
-  updateUserRole
+  updateUserRole,
 } = require("../controllers/authController");
 const authMiddleware = require("../middleware/authMiddleware");
 const roleMiddleware = require("../middleware/roleMiddleware");

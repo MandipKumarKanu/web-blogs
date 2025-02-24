@@ -1,6 +1,6 @@
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
+const bcryptjs = require("bcryptjs");
 
 const register = async (req, res) => {
   const { name, userName, email, password } = req.body;
@@ -12,7 +12,7 @@ const register = async (req, res) => {
     user = new User({ name, userName, email, password });
     await user.save();
 
-    console.log(user);
+    // console.log(user);
 
     const payload = {
       user: {
@@ -37,14 +37,14 @@ const register = async (req, res) => {
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: true,
       maxAge: 7 * 24 * 60 * 60 * 1000,
-      sameSite: process.env.NODE_ENV === "production" ? "lax" : "none",
+      sameSite: process.env.NODE_ENV === "production" ? "lax" : "None",
     });
 
     res.status(201).json({ accessToken, message: "Registration Successful" });
   } catch (err) {
-    console.error(err.message);
+    // console.error(err.message);
     res.status(500).json({ error: err.message });
   }
 };
@@ -54,9 +54,9 @@ const login = async (req, res) => {
 
   try {
     const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ error: "User not found" });
+    if (!user) return res.status(400).json({ message: "User not found" });
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = await bcryptjs.compare(password, user.password);
     if (!isMatch)
       return res.status(400).json({
         message: "Invalid credentials",
@@ -70,6 +70,7 @@ const login = async (req, res) => {
         email: user.email,
         name: user.name,
         profileImage: user.profileImage,
+        role: user.role
       },
     };
     const accessToken = jwt.sign(payload, process.env.JWT_SECRET, {
@@ -92,8 +93,8 @@ const login = async (req, res) => {
 
     res.status(201).json({ accessToken });
   } catch (error) {
-    console.error(err.message);
-    res.status(500).send("Server Error");
+    // console.error(err.message);
+    res.status(500).json({ error: "Invalid Crediantials" });
   }
 };
 
@@ -141,7 +142,7 @@ const update = async (req, res) => {
 
     res.status(201).json(updatedData);
   } catch (error) {
-    console.error(error);
+    // console.error(error);
     res.status(500).json({
       message: "Server Error",
       error: error.response?.data || error.message,
@@ -168,6 +169,7 @@ const refresh = async (req, res) => {
         email: user.email,
         name: user.name,
         profileImage: user.profileImage,
+        role: user.role
       },
     };
 
@@ -188,7 +190,7 @@ const getUserById = async (req, res) => {
 
     res.status(200).json({ user });
   } catch (err) {
-    console.error(err.message);
+    // console.error(err.message);
     res.status(500).json({
       message: "Server Error",
       error: err.response?.data || err.message,
@@ -198,7 +200,7 @@ const getUserById = async (req, res) => {
 
 const updatePassword = async (req, res) => {
   const { oldPassword, newPassword } = req.body;
-  
+
   if (!oldPassword || !newPassword) {
     return res
       .status(400)
@@ -209,7 +211,7 @@ const updatePassword = async (req, res) => {
     const user = await User.findById(req.user.id);
     if (!user) return res.status(401).json({ message: "User not found" });
 
-    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    const isMatch = await bcryptjs.compare(oldPassword, user.password);
     if (!isMatch)
       return res.status(401).json({ message: "Old password is not correct" });
 
@@ -218,7 +220,7 @@ const updatePassword = async (req, res) => {
 
     res.status(201).json({ message: "Password updated successfully" });
   } catch (error) {
-    console.error(error);
+    // console.error(error);
     res.status(500).json({
       message: "Server Error",
       error: error.response?.data || error.message,
@@ -241,7 +243,7 @@ const getAllUser = async (req, res) => {
 
     res.status(200).json({ users, totalPages, currentPage: page });
   } catch (err) {
-    console.error(err.message);
+    // console.error(err.message);
     res.status(400).json({
       message: "Server Error",
       error: err.response?.data || err.message,
