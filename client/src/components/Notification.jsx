@@ -63,6 +63,7 @@ const Notification = () => {
             No new notifications
           </div>
         ) : (
+          notifications &&
           notifications.map((notification) => (
             <DropdownMenuItem
               key={notification._id}

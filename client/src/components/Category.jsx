@@ -63,29 +63,30 @@ const Category = () => {
       <div className="mt-6 px-8">
         <Carousel className="">
           <CarouselContent className="-ml-1 flex gap-4">
-            {categories.map((category, index) => (
-              <CarouselItem
-                key={index}
-                className="pl-1 basis-1/2 md:basis-1/4 lg:basis-1/6 cursor-pointer"
-              >
-                <div
-                  className="p-1"
-                  onClick={() => setSelectedCategory(category.value)}
+            {categories &&
+              categories.map((category, index) => (
+                <CarouselItem
+                  key={index}
+                  className="pl-1 basis-1/2 md:basis-1/4 lg:basis-1/6 cursor-pointer"
                 >
-                  <Card
-                    className={`transition-all rounded-sm duration-300 shadow-md  ${
-                      selectedCategory === category.value
-                        ? "bg-primary/10 text-primary border border-primary"
-                        : "text-muted-foreground hover:text-foreground hover:bg-accent"
-                    } hover:shadow-xl`}
+                  <div
+                    className="p-1"
+                    onClick={() => setSelectedCategory(category.value)}
                   >
-                    <CardContent className="flex w-full h-16 items-center justify-center p-6 text-lg font-semibold">
-                      {category.name}
-                    </CardContent>
-                  </Card>
-                </div>
-              </CarouselItem>
-            ))}
+                    <Card
+                      className={`transition-all rounded-sm duration-300 shadow-md  ${
+                        selectedCategory === category.value
+                          ? "bg-primary/10 text-primary border border-primary"
+                          : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                      } hover:shadow-xl`}
+                    >
+                      <CardContent className="flex w-full h-16 items-center justify-center p-6 text-lg font-semibold">
+                        {category.name}
+                      </CardContent>
+                    </Card>
+                  </div>
+                </CarouselItem>
+              ))}
           </CarouselContent>
           <CarouselPrevious />
           <CarouselNext />

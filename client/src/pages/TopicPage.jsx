@@ -88,7 +88,7 @@ const TopicPage = () => {
   return (
     <section className="py-16 bg-background">
       <div className="container mx-auto px-4">
-        {categoryBlogs.map(({ category, blogs }) => (
+        {categoryBlogs&&categoryBlogs.map(({ category, blogs }) => (
           <div key={category} className="mb-16">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground tracking-tight">
@@ -112,7 +112,7 @@ const TopicPage = () => {
                   className="w-full"
                 >
                   <CarouselContent className="-ml-4">
-                    {blogs.map((blog, index) => (
+                    {blogs&&blogs.map((blog, index) => (
                       <CarouselItem
                         key={blog._id || index}
                         className="pl-4 basis-full sm:basis-1/2 lg:basis-1/3"

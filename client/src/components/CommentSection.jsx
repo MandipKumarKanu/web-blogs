@@ -248,19 +248,20 @@ const CommentItem = ({
 
       {replies && replies.length > 0 && (
         <div className="space-y-4 mt-4">
-          {replies.map((reply) => (
-            <CommentItem
-              key={reply._id}
-              comment={reply}
-              replies={groupedComments[reply._id] || []}
-              onReply={onReply}
-              onUpdate={onUpdate}
-              onDelete={onDelete}
-              isReply={true}
-              parentInfo={comment}
-              groupedComments={groupedComments}
-            />
-          ))}
+          {replies &&
+            replies.map((reply) => (
+              <CommentItem
+                key={reply._id}
+                comment={reply}
+                replies={groupedComments[reply._id] || []}
+                onReply={onReply}
+                onUpdate={onUpdate}
+                onDelete={onDelete}
+                isReply={true}
+                parentInfo={comment}
+                groupedComments={groupedComments}
+              />
+            ))}
         </div>
       )}
     </div>

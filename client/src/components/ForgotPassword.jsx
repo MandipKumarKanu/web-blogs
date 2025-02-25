@@ -111,19 +111,20 @@ const ForgotPassword = () => {
             <div className="space-y-2">
               <Label>Enter OTP</Label>
               <div className="flex justify-between gap-2">
-                {otp.map((digit, index) => (
-                  <Input
-                    key={index}
-                    ref={otpRefs[index]}
-                    type="text"
-                    inputMode="numeric"
-                    className="w-14 h-14 text-center text-2xl"
-                    value={digit}
-                    onChange={(e) => handleOtpChange(index, e.target.value)}
-                    onKeyDown={(e) => handleKeyDown(index, e)}
-                    required
-                  />
-                ))}
+                {otp &&
+                  otp.map((digit, index) => (
+                    <Input
+                      key={index}
+                      ref={otpRefs[index]}
+                      type="text"
+                      inputMode="numeric"
+                      className="w-14 h-14 text-center text-2xl"
+                      value={digit}
+                      onChange={(e) => handleOtpChange(index, e.target.value)}
+                      onKeyDown={(e) => handleKeyDown(index, e)}
+                      required
+                    />
+                  ))}
               </div>
             </div>
 

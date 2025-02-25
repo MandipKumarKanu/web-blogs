@@ -77,7 +77,7 @@ const CategoryPage = () => {
 
         {filteredData.length > 0 ? (
           <div className="grid grid-cols-1  gap-6">
-            {filteredData.map((blog) => (
+            {filteredData&&filteredData.map((blog) => (
               <div
                 key={blog.id}
                 className="transform hover:-translate-y-1 transition-transform duration-200"

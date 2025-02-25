@@ -44,21 +44,22 @@ const Header = () => {
 
   const NavLinks = ({ className = "", onClick = () => {} }) => (
     <>
-      {navItems.map((item) => (
-        <Link
-          key={item.path}
-          to={item.path}
-          onClick={onClick}
-          className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 
+      {navItems &&
+        navItems.map((item) => (
+          <Link
+            key={item.path}
+            to={item.path}
+            onClick={onClick}
+            className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 
             ${
               location.pathname === item.path
                 ? "bg-primary/10 text-primary hover:bg-primary/15"
                 : "text-muted-foreground hover:text-foreground hover:bg-accent"
             } ${className}`}
-        >
-          {item.label}
-        </Link>
-      ))}
+          >
+            {item.label}
+          </Link>
+        ))}
     </>
   );
 

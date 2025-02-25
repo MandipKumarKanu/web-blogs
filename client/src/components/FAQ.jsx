@@ -27,11 +27,11 @@ const faqData = [
     answer:
       "For quick insights, our blog app leverages the Gemini API to provide AI-powered summaries of posts. Just click the summary option to see a concise overview of any blog article.",
   },
-  // {
-  //   question: "What else can I do with this blog app?",
-  //   answer:
-  //     "Beyond reading, liking, and commenting, you can explore a range of features including personalized recommendations, AI summaries, and much more as we continuously add new functionalities to enhance your experience.",
-  // },
+  {
+    question: "What else can I do with this blog app?",
+    answer:
+      "Beyond reading, liking, and commenting, you can explore a range of features including personalized recommendations, AI summaries, and much more as we continuously add new functionalities to enhance your experience.",
+  },
 ];
 
 const FAQPage = () => {
@@ -48,7 +48,7 @@ const FAQPage = () => {
           </p>
         </header>
         <Accordion type="single" collapsible className="space-y-4">
-          {faqData.map((faq, index) => (
+          {faqData&&faqData.map((faq, index) => (
             <AccordionItem
               key={index}
               value={`faq-${index}`}

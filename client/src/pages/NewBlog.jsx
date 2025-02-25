@@ -123,7 +123,7 @@ const NewBlog = () => {
         </div>
 
         <div className="grid grid-cols-1 gap-8">
-          {blogs.map((blog, index) => (
+          {blogs&&blogs.map((blog, index) => (
             <PopularCard post={blog} key={`${blog._id}-${index}`} />
           ))}
         </div>
