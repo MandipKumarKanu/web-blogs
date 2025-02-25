@@ -39,7 +39,7 @@ const register = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       maxAge: 7 * 24 * 60 * 60 * 1000,
-      sameSite: process.env.NODE_ENV === "production" ? "Strict" : "Lax",
+      sameSite: "None",
     });
 
     res.status(201).json({ accessToken, message: "Registration Successful" });
@@ -88,7 +88,7 @@ const login = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       maxAge: 7 * 24 * 60 * 60 * 1000,
-      sameSite: process.env.NODE_ENV === "production" ? "Strict" : "Lax",
+      sameSite: "None",
     });
 
     res.status(201).json({ accessToken });

@@ -27,7 +27,7 @@ app.use(
       process.env.CLIENT_URL || "http://localhost:5173",
       "http://192.168.100.236:5173",
       "https://future-blogs.web.app",
-      "https://futureblog.mandipkk.com.np"
+      "https://futureblog.mandipkk.com.np",
     ],
     credentials: true,
   })
