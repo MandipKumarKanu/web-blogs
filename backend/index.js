@@ -26,7 +26,7 @@ app.use(
     origin: [
       process.env.CLIENT_URL || "http://localhost:5173",
       "http://192.168.100.236:5173",
-      "https://future-blogs.web.app/api/api/blogs/popular/views",
+      "https://future-blogs.web.app",
     ],
     credentials: true,
   })
