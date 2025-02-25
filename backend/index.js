@@ -23,7 +23,11 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin: [process.env.CLIENT_URL || "http://localhost:5173", "http://192.168.100.236:5173"],
+    origin: [
+      process.env.CLIENT_URL || "http://localhost:5173",
+      "http://192.168.100.236:5173",
+      "https://future-blogs.web.app/api/api/blogs/popular/views",
+    ],
     credentials: true,
   })
 );
