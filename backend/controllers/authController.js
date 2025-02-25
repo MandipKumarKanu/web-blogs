@@ -37,9 +37,9 @@ const register = async (req, res) => {
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === "production",
       maxAge: 7 * 24 * 60 * 60 * 1000,
-      sameSite: process.env.NODE_ENV === "production" ? "lax" : "None",
+      sameSite: process.env.NODE_ENV === "production" ? "Strict" : "Lax",
     });
 
     res.status(201).json({ accessToken, message: "Registration Successful" });
@@ -70,7 +70,7 @@ const login = async (req, res) => {
         email: user.email,
         name: user.name,
         profileImage: user.profileImage,
-        role: user.role
+        role: user.role,
       },
     };
     const accessToken = jwt.sign(payload, process.env.JWT_SECRET, {
@@ -86,9 +86,9 @@ const login = async (req, res) => {
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === "production",
       maxAge: 7 * 24 * 60 * 60 * 1000,
-      sameSite: process.env.NODE_ENV === "production" ? "lax" : "None",
+      sameSite: process.env.NODE_ENV === "production" ? "Strict" : "Lax",
     });
 
     res.status(201).json({ accessToken });
@@ -169,7 +169,7 @@ const refresh = async (req, res) => {
         email: user.email,
         name: user.name,
         profileImage: user.profileImage,
-        role: user.role
+        role: user.role,
       },
     };
 
