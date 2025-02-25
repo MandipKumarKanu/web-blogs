@@ -4,9 +4,9 @@ import { jwtDecode } from "jwt-decode";
 export const PROD_URL = "/api/api"; //production api
 export const DEV_URL = import.meta.env.VITE_DEV_URL; //development api
 
-// export const baseURL =  import.meta.env.MODE === "development" ? DEV_URL : PROD_URL;
+export const baseURL =  import.meta.env.MODE === "development" ? DEV_URL : PROD_URL;
 // export const baseURL = PROD_URL;
-export const baseURL = "https://web-blogs-tau.vercel.app/api";
+// export const baseURL = "https://web-blogs-tau.vercel.app/api";
 
 export const customAxios = axios.create({
   headers: {
@@ -31,7 +31,8 @@ export const setupInterceptors = (getToken, setToken, updateUser) => {
       const token = await tokenPromise;
       if (token) {
         const decoded = jwtDecode(token);
-        config.headers.Authorization = `Bearer ${token}`;
+        // console.log(decoded, "axios");
+        config.headers.Authorization =` Bearer ${token}`;
       }
       return config;
     },
@@ -46,7 +47,9 @@ export const setupInterceptors = (getToken, setToken, updateUser) => {
       if (error.response?.status === 401 && !originalRequest._isRetry) {
         originalRequest._isRetry = true;
         try {
-          const response = await customAxios.get("/auth/refresh");
+          const response = await axios.get(`${baseURL}/auth/refresh`, {
+            withCredentials: true,
+          });
 
           const { accessToken } = response.data;
           const decodedUser = jwtDecode(accessToken).user;
@@ -70,3 +73,4 @@ export const setupInterceptors = (getToken, setToken, updateUser) => {
     }
   );
 };
+
