@@ -11,7 +11,7 @@ const register = async (req, res) => {
 
     user = new User({ name, userName, email, password });
     await user.save();
-
+    
     // console.log(user);
 
     const payload = {

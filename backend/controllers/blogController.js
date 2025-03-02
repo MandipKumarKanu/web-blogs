@@ -6,6 +6,7 @@ const { updateUserInterests } = require("../utils/helper");
 const User = require("../models/User");
 // const { io } = require("../server");
 // const { post } = require("../routes/notificationRoute");
+const levenshtein = require("fast-levenshtein");
 
 const createBlog = async (req, res) => {
   const { title, content, tags, categories, image, scheduledPublishDate } =
@@ -618,6 +619,48 @@ const getRecommendedBlogs = async (req, res) => {
   }
 };
 
+const searchBlogByQuery = async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q) {
+      return res.status(400).json({ message: "Please provide a search query" });
+    }
+
+    const queryWords = q.toLowerCase().split(" ");
+    const blogs = await Blog.find({ status: "published" }, "title");
+
+    const results = blogs
+      .map((blog) => {
+        const titleWords = blog.title.toLowerCase().split(" ");
+        let matchScore = 0;
+
+        queryWords.forEach((queryWord) => {
+          titleWords.forEach((titleWord) => {
+            if (queryWord.length < 3) {
+              if (queryWord === titleWord) {
+                matchScore++;
+              }
+            } else {
+              const distance = levenshtein.get(queryWord, titleWord);
+              if (distance <= 2) {
+                matchScore++;
+              }
+            }
+          });
+        });
+
+        return { blog, matchScore };
+      })
+      .filter((result) => result.matchScore > 0)
+      .sort((a, b) => b.matchScore - a.matchScore)
+      .map((result) => result.blog);
+
+    res.status(200).json(results);
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error });
+  }
+};
+
 module.exports = {
   createBlog,
   getAllBlogs,
@@ -638,5 +681,6 @@ module.exports = {
   incrementShares,
   getBlogsByCategoryPage,
   getPopularBlogsOfMonth,
-  getRecommendedBlogs
+  getRecommendedBlogs,
+  searchBlogByQuery,
 };

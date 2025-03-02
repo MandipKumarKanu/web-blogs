@@ -21,6 +21,7 @@ const {
   getBlogsByCategoryPage,
   getPopularBlogsOfMonth,
   getRecommendedBlogs,
+  searchBlogByQuery,
 } = require("../controllers/blogController");
 const roleMiddleware = require("../middleware/roleMiddleware");
 const router = express.Router();
@@ -35,6 +36,7 @@ router.get("/", getAllBlogs);
 router.get("/summarize/:id", summarizeBlog);
 router.get("/popular", getPopularBlog);
 router.get("/search", searchBlogs);
+router.get("/searchByQuery", searchBlogByQuery);
 router.get("/filter", getByCategory);
 router.get("/popularmonth", getPopularBlogsOfMonth);
 router.get("/recommended", authMiddleware, getRecommendedBlogs);
