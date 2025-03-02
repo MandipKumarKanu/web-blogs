@@ -1,67 +1,83 @@
+import { useCallback, useEffect, useRef, useState } from "react";
 import PopularCard from "@/components/PopularCard";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useBlogStore } from "@/store/useBlogStore";
 import { ArrowRight } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
 
 const NewBlog = () => {
   const { getAllBlogs, loading, error, totalPages } = useBlogStore();
   const [currentPage, setCurrentPage] = useState(1);
   const [blogs, setBlogs] = useState([]);
+  const lastScrollY = useRef(0);
+  const scrollThreshold = 300; // Scroll height threshold to trigger fetch
+
   const observerRef = useRef(null);
   const loadingRef = useRef(null);
 
+  // Function to load more data if not already loading and pages remain
   const loadMore = useCallback(() => {
     if (!loading && currentPage < totalPages) {
       setCurrentPage((prev) => prev + 1);
     }
   }, [loading, currentPage, totalPages]);
 
-  useEffect(() => {
-    const options = {
-      root: null,
-      rootMargin: "20px",
-      threshold: 0.1,
-    };
-
-    observerRef.current = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting) {
-        loadMore();
-      }
-    }, options);
-
-    return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect();
-      }
-    };
+  // Scroll event listener for more reliable triggering
+  const handleScroll = useCallback(() => {
+    const currentScrollY = window.scrollY;
+    const scrolledDistance = currentScrollY - lastScrollY.current;
+    if (scrolledDistance > scrollThreshold) {
+      lastScrollY.current = currentScrollY;
+      loadMore();
+    }
   }, [loadMore]);
 
+  // Set up both Intersection Observer and scroll event listener
   useEffect(() => {
-    const currentObserver = observerRef.current;
-    const currentLoadingRef = loadingRef.current;
+    // Intersection Observer observes the loading indicator element
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          loadMore();
+        }
+      },
+      {
+        root: null,
+        rootMargin: "20px",
+        threshold: 0.1,
+      }
+    );
+    observerRef.current = observer;
 
-    if (currentLoadingRef && currentObserver) {
-      currentObserver.observe(currentLoadingRef);
+    if (loadingRef.current) {
+      observer.observe(loadingRef.current);
     }
+    window.addEventListener("scroll", handleScroll);
 
     return () => {
-      if (currentLoadingRef && currentObserver) {
-        currentObserver.unobserve(currentLoadingRef);
+      if (observerRef.current && loadingRef.current) {
+        observerRef.current.unobserve(loadingRef.current);
       }
+      window.removeEventListener("scroll", handleScroll);
     };
-  }, []);
+  }, [loadMore, handleScroll]);
 
+  // Fetch blogs when currentPage changes
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
-        const pageSize = currentPage === 1 ? 20 : 10;
-        const newBlogs = (await getAllBlogs(currentPage, pageSize)) || [];
+        // Fetch initial 25 blogs on first page
+        const pageSize = currentPage === 1 ? 25 : 15;
+        const newBlogs = await getAllBlogs(currentPage, pageSize);
+
         if (currentPage === 1) {
-          setBlogs(newBlogs);
+          setBlogs(newBlogs); // Set the initial blogs
         } else {
-          setBlogs((prev) => prev.slice(10).concat(newBlogs));
+          // Remove the first 10 blogs and append the new ones
+          setBlogs((prevBlogs) => {
+            const updatedBlogs = [...prevBlogs.slice(10), ...newBlogs];
+            return updatedBlogs;
+          });
         }
       } catch (err) {
         console.error("Error fetching blogs:", err);
@@ -71,6 +87,7 @@ const NewBlog = () => {
     fetchBlogs();
   }, [currentPage, getAllBlogs]);
 
+  // Render skeleton while loading initial data
   if (loading && blogs.length === 0) {
     return (
       <div className="container mx-auto px-4 py-12">
@@ -86,6 +103,7 @@ const NewBlog = () => {
     );
   }
 
+  // Render error state
   if (error) {
     return (
       <div className="container mx-auto px-4 py-12 text-center">
@@ -96,6 +114,7 @@ const NewBlog = () => {
     );
   }
 
+  // Render empty state if no blogs available
   if (!blogs || blogs.length === 0) {
     return (
       <div className="container mx-auto px-4 py-12 text-center">
@@ -123,11 +142,12 @@ const NewBlog = () => {
         </div>
 
         <div className="grid grid-cols-1 gap-8">
-          {blogs&&blogs.map((blog, index) => (
+          {blogs.map((blog, index) => (
             <PopularCard post={blog} key={`${blog._id}-${index}`} />
           ))}
         </div>
 
+        {/* Loading indicator also used as the observer target */}
         <div ref={loadingRef} className="mt-8">
           {loading && (
             <div className="flex justify-center p-8">

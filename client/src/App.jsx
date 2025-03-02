@@ -31,6 +31,7 @@ import Notification from "./components/Notification";
 import Loader from "./components/Loader";
 import ProtectedRoute from "./components/ProtectedRoute";
 import FAQPage from "./components/FAQ";
+import SearchComponent from "./components/SearchComponent";
 const EditBlog = lazy(() => import("./components/EditBlog"));
 
 const App = () => {
@@ -106,6 +107,9 @@ const App = () => {
           </Route>
         </Routes>
       </div>
+      {/* <div>
+        <SearchComponent />
+      </div> */}
       <Footer />
       <Toaster richColors />
     </ThemeProvider>

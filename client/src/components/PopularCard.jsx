@@ -27,12 +27,12 @@ const PopularCard = ({ post }) => {
     <Card className="group hover:shadow-2xl transition-shadow duration-300 overflow-hidden rounded-2xl border">
       <div className="flex flex-col md:flex-row h-full">
         <div className="relative w-full md:w-[35%] h-72 md:h-auto shrink-0 overflow-hidden rounded-t-2xl md:rounded-l-2xl md:rounded-tr-none">
-          <Link to={`/blog/${post?._id}`}>
+          <Link to={`/blog/${post?._id}`} className=" overflow-hidden">
             <img
               src={post.image}
               loading="lazy"
               alt={post.title}
-              className="w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-105 rounded-t-2xl md:rounded-l-2xl md:rounded-tr-none"
+              className="w-full max-h-[390px] h-full object-cover transform transition-transform duration-500 group-hover:scale-105 rounded-t-2xl md:rounded-l-2xl md:rounded-tr-none"
             />
             <div className="absolute inset-0 bg-black/20 transition-opacity duration-300 group-hover:opacity-10" />
           </Link>

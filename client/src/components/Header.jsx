@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuthStore } from "@/store/useAuthStore";
 import Notification from "./Notification";
+import SearchComponent from "./SearchComponent";
 
 const Header = () => {
   const { theme, setTheme } = useTheme();
@@ -98,6 +99,7 @@ const Header = () => {
 
         <nav className="hidden md:flex items-center gap-1.5">
           <NavLinks />
+          <SearchComponent />
         </nav>
 
         <div className="hidden md:flex items-center gap-3">

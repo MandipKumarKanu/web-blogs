@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Share2,
   MessageCircleDashed,
@@ -26,9 +26,57 @@ import BlogSkeleton from "@/components/BlogSkeleton";
 import ShrinkDescription from "@/components/ShrinkDescription";
 import CommentsDialog from "@/components/CommentSection";
 import RecommendedBlog from "@/components/RecommendedBlog";
+import { Skeleton } from "@/components/ui/skeleton";
+
+const configureDOMPurify = () => {
+  DOMPurify.addHook("afterSanitizeAttributes", function (node) {
+    // Allow iframes from trusted sources
+    if (node.tagName === "IFRAME") {
+      // Allow YouTube embeds
+      if (
+        node.getAttribute("src") &&
+        (node.getAttribute("src").indexOf("youtube.com") > -1 ||
+          node.getAttribute("src").indexOf("youtu.be") > -1)
+      ) {
+        node.setAttribute("allowfullscreen", "true");
+      }
+    }
+
+    // Make links open in new tab
+    if (node.tagName === "A") {
+      node.setAttribute("target", "_blank");
+      node.setAttribute("rel", "noopener noreferrer");
+    }
+  });
+
+  // Configure DOMPurify to allow specific tags and attributes
+  const purifyConfig = {
+    ADD_TAGS: ["iframe", "blockquote", "script"],
+    ADD_ATTR: [
+      "allowfullscreen",
+      "frameborder",
+      "allow",
+      "referrerpolicy",
+      "src",
+      "class",
+      "href",
+      "target",
+      "rel",
+      "title",
+      "dir",
+      "lang",
+      "async",
+      "charset",
+      "data-theme",
+      "data-tweet-id",
+    ],
+  };
+
+  return purifyConfig;
+};
 
 export default function BlogPage() {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [blog, setBlog] = useState(null);
   const [summary, setSummary] = useState(null);
@@ -38,6 +86,22 @@ export default function BlogPage() {
   const [likeLoading, setLikeLoading] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [commentCount, setCommentCount] = useState(0);
+  const [hoveredImg, setHoveredImg] = useState(null);
+  const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
+
+  const handleMouseMove = (e) => {
+    setCursorPos({ x: e.clientX, y: e.clientY });
+  };
+
+  const handleMouseEnter = (imgSrc) => {
+    setHoveredImg(imgSrc);
+  };
+
+  const handleMouseLeave = () => {
+    setHoveredImg(null);
+  };
+
+  const blogContentRef = useRef(null);
 
   const { token, user } = useAuthStore();
   const navigate = useNavigate();
@@ -67,7 +131,23 @@ export default function BlogPage() {
     };
 
     initializeBlog();
-  }, [id, token]);
+  }, [id]);
+
+  useEffect(() => {
+    if (blog?.content) {
+      const script = document.getElementById("twitter-widget-script");
+      if (!script) {
+        const newScript = document.createElement("script");
+        newScript.id = "twitter-widget-script";
+        newScript.src = "https://platform.twitter.com/widgets.js";
+        newScript.async = true;
+        newScript.charset = "utf-8";
+        document.body.appendChild(newScript);
+      } else {
+        window?.twttr?.widgets?.load();
+      }
+    }
+  }, [blog]);
 
   const incrementView = async () => {
     try {
@@ -80,10 +160,9 @@ export default function BlogPage() {
   const incrementShare = async () => {
     try {
       const response = await incShare(id);
-      setBlog((prev) => ({
-        ...prev,
-        shares: response.data.shares,
-      }));
+      setBlog((prev) =>
+        prev ? { ...prev, shares: response.data.shares } : prev
+      );
     } catch (error) {
       console.log(getErrorMessage(error));
     }
@@ -107,6 +186,7 @@ export default function BlogPage() {
 
   const fetchBlog = async () => {
     try {
+      setLoading(true);
       const response = await getBlogById(id);
       const fetchedBlog = response.data.blog;
       setBlog(fetchedBlog);
@@ -177,8 +257,34 @@ export default function BlogPage() {
     );
   }
 
+  const processEmbeddedContent = (content) => {
+    if (!content) return null;
+
+    // First decode HTML entities
+    const decodedContent = content
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&amp;/g, "&");
+
+    // Remove script tags for sanitization, we'll add them back later
+    const contentWithoutScripts = decodedContent.replace(
+      /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+      ""
+    );
+
+    // Sanitize the content
+    const purifyConfig = configureDOMPurify();
+    const sanitizedContent = DOMPurify.sanitize(
+      contentWithoutScripts,
+      purifyConfig
+    );
+
+    // Parse the sanitized content into React components
+    return parse(sanitizedContent);
+  };
+
   const blogContent = blog.content
-    ? parse(DOMPurify.sanitize(blog.content))
+    ? processEmbeddedContent(blog.content)
     : null;
 
   const renderSummaryContent = () => {
@@ -186,9 +292,9 @@ export default function BlogPage() {
       return (
         <div className="text-center p-6 space-y-4">
           <div className="animate-pulse flex flex-col items-center gap-4">
-            <div className="h-4 bg-muted-foreground/20 rounded w-3/4"></div>
-            <div className="h-4 bg-muted-foreground/20 rounded w-1/2"></div>
-            <div className="h-4 bg-muted-foreground/20 rounded w-2/3"></div>
+            <Skeleton className="h-4 rounded w-3/4"></Skeleton>
+            <Skeleton className="h-4 rounded w-1/2"></Skeleton>
+            <Skeleton className="h-4 rounded w-2/3"></Skeleton>
           </div>
           <p className="text-sm text-muted-foreground">
             AI is analyzing the article...
@@ -247,6 +353,7 @@ export default function BlogPage() {
     return (
       <div className="prose prose-sm max-w-none dark:prose-invert">
         <div className="[&>ul]:list-disc [&>ul]:ml-6 [&>ul]:space-y-2 [&>ul]:text-muted-foreground">
+          {/* {console.log(sanitizedSummary)} */}
           {parse(sanitizedSummary)}
         </div>
       </div>
@@ -263,6 +370,14 @@ export default function BlogPage() {
           loading="lazy"
           alt="Blog Hero"
           className="w-full h-full object-cover transition-transform duration-500"
+          onMouseMove={handleMouseMove}
+          onMouseEnter={() =>
+            handleMouseEnter(
+              blog.image || "https://via.placeholder.com/1200x600?text=No+Image"
+            )
+          }
+          onMouseLeave={handleMouseLeave}
+          // key={index}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent pointer-events-none" />
         <h2 className="absolute bottom-0 left-0 right-0 mx-auto p-4 text-center text-lg sm:text-xl md:text-3xl lg:text-4xl font-bold text-foreground/90 leading-tight drop-shadow-lg max-w-[90%] sm:max-w-[80%] md:max-w-[70%] lg:max-w-[60%]">
@@ -359,10 +474,28 @@ export default function BlogPage() {
           </div>
         </aside>
 
-        <div className="order-last lg:order-first lg:col-span-2 space-y-8">
+        <div
+          className="order-last lg:order-first lg:col-span-2 space-y-8"
+          ref={blogContentRef}
+        >
           <ShrinkDescription desc={blogContent} />
         </div>
       </div>
+      {hoveredImg && (
+        <div
+          className="fixed pointer-events-none z-50 hidden sm:block"
+          style={{
+            top: cursorPos.y + 20 + "px",
+            left: cursorPos.x + 20 + "px",
+          }}
+        >
+          <img
+            src={hoveredImg}
+            alt="Preview"
+            className="w-56 h-36 object-cover rounded-lg shadow-lg border border-gray-300"
+          />
+        </div>
+      )}
 
       <RecommendedBlog />
       <CommentsDialog

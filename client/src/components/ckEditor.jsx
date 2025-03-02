@@ -165,6 +165,7 @@ export const CKEditorComp = ({ content, setContent, disableCK }) => {
                 }}
                 onChange={(_, editor) => {
                   const data = editor.getData();
+                  console.log(data)
                   setContent(data);
                 }}
               />

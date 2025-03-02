@@ -5,8 +5,8 @@ import { jwtDecode } from "jwt-decode";
 export const DEV_URL = import.meta.env.VITE_DEV_URL; //development api
 export const PROD_URL = "https://web-blogs-tau.vercel.app/api";
 
-export const baseURL =  import.meta.env.MODE === "development" ? DEV_URL : PROD_URL;
-// export const baseURL = PROD_URL;
+// export const baseURL =  import.meta.env.MODE === "development" ? DEV_URL : PROD_URL;
+export const baseURL = PROD_URL;
 
 export const customAxios = axios.create({
   headers: {

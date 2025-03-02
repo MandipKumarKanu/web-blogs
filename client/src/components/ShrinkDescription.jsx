@@ -1,69 +1,65 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { ChevronDown } from "lucide-react";
 
-const ShrinkDescription = ({ desc, size = 450 }) => {
-  const [showFullDescription, setShowFullDescription] = useState(false);
+const ShrinkDescription = ({ desc, maxHeight = 400 }) => {
+  const [expanded, setExpanded] = useState(false);
+  const [needsTruncation, setNeedsTruncation] = useState(false);
+  const contentRef = useRef(null);
 
-  if (!desc) {
-    return (
-      <div className="text-lg text-muted-foreground">
-        No description available!
-      </div>
-    );
-  }
-
-  const isArrayContent = Array.isArray(desc);
-  const truncatedContent = isArrayContent
-    ? desc.slice(0, size)
-    : desc.slice(0, size);
+  useEffect(() => {
+    if (contentRef.current) {
+      const contentHeight = contentRef.current.scrollHeight;
+      setNeedsTruncation(contentHeight > maxHeight);
+    }
+  }, []);
 
   return (
-    <div className="relative">
+    <div className="relative mb-8">
       <div
-        className={cn(
-          "text-lg text-muted-foreground overflow-hidden transition-[max-height] duration-300 ease-in-out",
-          showFullDescription ? "max-h-[2000px]" : "max-h-[450px]"
-        )}
+        ref={contentRef}
+        style={{
+          maxHeight: !expanded && needsTruncation ? `${maxHeight}px` : "none",
+          overflow: !expanded && needsTruncation ? "hidden" : "visible",
+          position: "relative",
+        }}
+        className="prose prose-sm md:prose-base lg:prose-lg max-w-none dark:prose-invert"
       >
-        <div
-          className={cn(
-            "transition-opacity duration-300",
-            showFullDescription ? "opacity-100" : "opacity-80"
-          )}
-        >
-          {showFullDescription ? (
-            isArrayContent ? (
-              <div>{desc}</div>
-            ) : (
-              desc
-            )
-          ) : (
-            <div>
-              {isArrayContent ? truncatedContent : `${truncatedContent}...`}
-            </div>
-          )}
-        </div>
+        {desc}
       </div>
 
-      {!showFullDescription && (
-        <>
-          <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent pointer-events-none" />
+      {needsTruncation && !expanded && (
+        <div
+          style={{
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: "80px",
+            background:
+              "linear-gradient(to top, var(--background), transparent)",
+            pointerEvents: "none",
+          }}
+        />
+      )}
 
-          <div className="absolute bottom-0 left-0 right-0 flex justify-center pb-4">
-            <Button
-              variant="ghost"
-              onClick={() => setShowFullDescription(true)}
-              className="group hover:bg-accent/50 transition-colors duration-300"
-            >
-              <span className="flex items-center gap-2 text-xl">
-                Read Full Blog
-                <ChevronDown className="w-4 h-4 transition-transform duration-300 group-hover:translate-y-1" />
-              </span>
-            </Button>
-          </div>
-        </>
+      {needsTruncation && (
+        <div className="flex justify-center mt-4">
+          <Button
+            variant="ghost"
+            onClick={() => setExpanded(!expanded)}
+            className="group hover:bg-accent/50 transition-colors duration-300"
+          >
+            <span className="flex items-center gap-2 text-lg">
+              {expanded ? "Show Less" : "Read Full Blog"}
+              <ChevronDown
+                className={`w-4 h-4 transition-transform duration-300 group-hover:translate-y-1 ${
+                  expanded ? "rotate-180" : ""
+                }`}
+              />
+            </span>
+          </Button>
+        </div>
       )}
     </div>
   );

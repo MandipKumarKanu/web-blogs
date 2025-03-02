@@ -92,7 +92,7 @@ const Landing = () => {
                 src={weeklyPopularBlogs[2]?.image}
                 loading="lazy"
                 alt={weeklyPopularBlogs[2]?.title}
-                className="rounded-[2.5rem] object-cover w-full h-full min-h-[300px] transition-transform duration-300 group-hover:scale-[0.99]"
+                className="rounded-[2.5rem] object-cover w-full h-[300px] transition-transform duration-300 group-hover:scale-[0.99]"
               />
             </Link>
             <div className="absolute bottom-6 right-6 z-20">
