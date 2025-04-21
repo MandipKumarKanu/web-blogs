@@ -22,7 +22,7 @@ const register = async (req, res) => {
         name: user.name,
         profileImage: user.profileImage,
         interests: user.interests,
-        role:user.role
+        role: "user",
       },
     };
 
@@ -39,7 +39,7 @@ const register = async (req, res) => {
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === "production" ? false : true,
       sameSite: "Strict",
     });
 
@@ -88,7 +88,7 @@ const login = async (req, res) => {
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === "production" ? false : true,
       sameSite: "Strict",
     });
 
