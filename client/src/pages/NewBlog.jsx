@@ -10,19 +10,16 @@ const NewBlog = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [blogs, setBlogs] = useState([]);
   const lastScrollY = useRef(0);
-  const scrollThreshold = 300; // Scroll height threshold to trigger fetch
-
+  const scrollThreshold = 300; 
   const observerRef = useRef(null);
   const loadingRef = useRef(null);
 
-  // Function to load more data if not already loading and pages remain
   const loadMore = useCallback(() => {
     if (!loading && currentPage < totalPages) {
       setCurrentPage((prev) => prev + 1);
     }
   }, [loading, currentPage, totalPages]);
 
-  // Scroll event listener for more reliable triggering
   const handleScroll = useCallback(() => {
     const currentScrollY = window.scrollY;
     const scrolledDistance = currentScrollY - lastScrollY.current;
@@ -32,9 +29,7 @@ const NewBlog = () => {
     }
   }, [loadMore]);
 
-  // Set up both Intersection Observer and scroll event listener
   useEffect(() => {
-    // Intersection Observer observes the loading indicator element
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
@@ -62,18 +57,15 @@ const NewBlog = () => {
     };
   }, [loadMore, handleScroll]);
 
-  // Fetch blogs when currentPage changes
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
-        // Fetch initial 25 blogs on first page
         const pageSize = currentPage === 1 ? 25 : 15;
         const newBlogs = await getAllBlogs(currentPage, pageSize);
 
         if (currentPage === 1) {
-          setBlogs(newBlogs); // Set the initial blogs
+          setBlogs(newBlogs); 
         } else {
-          // Remove the first 10 blogs and append the new ones
           setBlogs((prevBlogs) => {
             const updatedBlogs = [...prevBlogs.slice(10), ...newBlogs];
             return updatedBlogs;
@@ -87,7 +79,6 @@ const NewBlog = () => {
     fetchBlogs();
   }, [currentPage, getAllBlogs]);
 
-  // Render skeleton while loading initial data
   if (loading && blogs.length === 0) {
     return (
       <div className="container mx-auto px-4 py-12">
@@ -103,7 +94,6 @@ const NewBlog = () => {
     );
   }
 
-  // Render error state
   if (error) {
     return (
       <div className="container mx-auto px-4 py-12 text-center">
@@ -114,7 +104,6 @@ const NewBlog = () => {
     );
   }
 
-  // Render empty state if no blogs available
   if (!blogs || blogs.length === 0) {
     return (
       <div className="container mx-auto px-4 py-12 text-center">
@@ -147,7 +136,6 @@ const NewBlog = () => {
           ))}
         </div>
 
-        {/* Loading indicator also used as the observer target */}
         <div ref={loadingRef} className="mt-8">
           {loading && (
             <div className="flex justify-center p-8">

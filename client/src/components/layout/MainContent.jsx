@@ -55,7 +55,6 @@ const MainContent = () => {
             </p>
           </div>
 
-          {/* Stats Cards */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
@@ -98,7 +97,6 @@ const MainContent = () => {
             </Card>
           </div>
 
-          {/* Recent Activity */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <Card className="col-span-2">
               <CardHeader>
@@ -130,7 +128,6 @@ const MainContent = () => {
               </CardContent>
             </Card>
 
-            {/* Quick Actions */}
             <Card>
               <CardHeader>
                 <CardTitle>Quick Actions</CardTitle>

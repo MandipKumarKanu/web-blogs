@@ -9,7 +9,7 @@ import {
   LogOut,
   ChevronDown,
 } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "./context/theme-provider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -33,7 +33,8 @@ const Header = () => {
   const isDark = theme === "dark";
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
-
+  const navigate = useNavigate();
+  
   const { user, logout } = useAuthStore();
 
   const navItems = [
@@ -42,6 +43,10 @@ const Header = () => {
     { label: "New", path: "/new" },
     { label: "Topics", path: "/topics" },
   ];
+
+  const handleLogout = async()=>{
+    await logout(navigate);
+  }
 
   const NavLinks = ({ className = "", onClick = () => {} }) => (
     <>
@@ -105,7 +110,6 @@ const Header = () => {
         <div className="hidden md:flex items-center gap-3">
           {user ? (
             <div iv className="flex items-center gap-2">
-              {/* <Notification /> */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="flex items-center gap-2 p-1 rounded hover:bg-accent/80 transition-colors">
@@ -138,7 +142,7 @@ const Header = () => {
                       Profile
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={logout}>
+                  <DropdownMenuItem onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" />
                     Logout
                   </DropdownMenuItem>
@@ -155,7 +159,6 @@ const Header = () => {
         </div>
 
         <div className="flex md:hidden items-center gap-2">
-          {/* <Notification /> */}
 
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>

@@ -26,12 +26,6 @@ const Category = () => {
   } = useCategoryTagStore();
 
   useEffect(() => {
-    if (categories.length === 0) {
-      fetchCategoriesAndTags();
-    }
-  }, []);
-
-  useEffect(() => {
     fetchByCate();
   }, [selectedCategory]);
 

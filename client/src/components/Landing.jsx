@@ -84,7 +84,6 @@ const Landing = () => {
                 {weeklyPopularBlogs[1]?.title}
               </h3>
               <div className="text-muted-foreground line-clamp-3">
-                {/* Safe parsing of content if it exists */}
                 {weeklyPopularBlogs[1]?.content &&
                   parse(weeklyPopularBlogs[1]?.content)}
               </div>

@@ -242,7 +242,6 @@ const TopicPage = () => {
                       </div>
                     )}
 
-                    {/* Additional regular blog cards if there are more than 5 blogs */}
                     {regularBlogs.length > 4 && (
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
                         {regularBlogs.slice(4).map((blog, index) => (

@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import getErrorMessage from "../components/utils/getErrorMsg";
 import { jwtDecode } from "jwt-decode";
 import { replace } from "react-router-dom";
+import { customAxios } from "@/components/config/axios";
 
 export const useAuthStore = create((set) => ({
   loading: false,
@@ -20,7 +21,7 @@ export const useAuthStore = create((set) => ({
       const response = await authSignIn({ email, password });
       const token = response.data.accessToken;
       const decodedUser = jwtDecode(token).user;
-      setName(decodedUser.interests)
+      setName(decodedUser.interests);
       console.log(decodedUser);
       set({ loading: false, user: decodedUser, token });
       toast.success("Logged-in Successful");
@@ -48,7 +49,21 @@ export const useAuthStore = create((set) => ({
     }
   },
 
-  logout: async () => {
-    console.log("logout");
+  logout: async (navigate) => {
+    try {
+      await customAxios.get("auth/logout");
+
+      localStorage.removeItem("loggedIn");
+      localStorage.removeItem("interest");
+
+      set({ token: null, user: null, loading: false, error: null });
+
+      navigate("/", { replace: true });
+
+      toast.success("Logged out successfully!");
+    } catch (error) {
+      console.error("Error during logout:", error);
+      toast.error("Failed to log out. Please try again.");
+    }
   },
 }));
