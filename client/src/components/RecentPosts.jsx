@@ -31,7 +31,7 @@ const RecentPosts = () => {
         <div className="space-y-8">
           {blogs &&
             blogs
-              .slice(0, 4)
+              .slice(0, 6)
               .map((post, key) => <RecentCard key={key} post={post} />)}
         </div>
       </div>

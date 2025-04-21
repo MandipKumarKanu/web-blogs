@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { format } from "date-fns";
-import { ImageIcon, Tags, Upload, Users2, X } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ImageIcon, Tags, Upload, Users2, X, ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -34,41 +34,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { createBlog } from "@/components/api/blog";
 import { toast } from "sonner";
 import { CKEditorComp } from "@/components/ckEditor";
+import useCategoryTagStore from "@/store/useCategoryTagStore";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
-const IMGBB_API_KEY = import.meta.env.VITE_IMGBB_API
-
-const PREDEFINED_TAGS = [
-  { value: "Technology", label: "Technology" },
-  { value: "Programming", label: "Programming" },
-  { value: "Design", label: "Design" },
-  { value: "Travel", label: "Travel" },
-  { value: "Lifestyle", label: "Lifestyle" },
-  { value: "Food", label: "Food" },
-  { value: "Health", label: "Health" },
-  { value: "Science", label: "Science" },
-  { value: "Art", label: "Art" },
-  { value: "Music", label: "Music" },
-  { value: "Education", label: "Education" },
-];
-
-const PREDEFINED_CATEGORIES = [
-  { value: "Tech Blog", label: "Tech Blog" },
-  { value: "Personal Diary", label: "Personal Diary" },
-  { value: "Travel Journal", label: "Travel Journal" },
-  { value: "Cooking", label: "Cooking" },
-  { value: "Fitness", label: "Fitness" },
-  { value: "Education", label: "Education" },
-  { value: "Reviews", label: "Reviews" },
-  { value: "News", label: "News" },
-  { value: "Entertainment", label: "Entertainment" },
-  { value: "Sports", label: "Sports" },
-  { value: "Politics", label: "Politics" },
-  { value: "Health", label: "Health" },
-  { value: "Technology", label: "Technology" },
-  { value: "Environment", label: "Environment" },
-];
+const IMGBB_API_KEY = import.meta.env.VITE_IMGBB_API;
 
 const blogSchema = z.object({
   title: z.string().min(12, "Title must be at least 12 characters"),
@@ -90,6 +60,20 @@ const BlogForm = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [desc, setDesc] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
+  const totalSteps = 3;
+
+  const { categories, tags } = useCategoryTagStore();
+
+  const transformedCategories = categories.map((category) => ({
+    value: category._id,
+    label: category.name,
+  }));
+
+  const transformedTags = tags.map((tag) => ({
+    value: tag._id,
+    label: tag.name,
+  }));
 
   const form = useForm({
     resolver: zodResolver(blogSchema),
@@ -99,10 +83,34 @@ const BlogForm = () => {
       status: "pending",
       scheduledPublishDate: null,
     },
+    mode: "onChange",
   });
 
-  const { watch, setValue, clearErrors, reset } = form;
+  const { watch, setValue, clearErrors, reset, formState } = form;
   const status = watch("status");
+  const title = watch("title");
+  const image = watch("image");
+
+  const steps = [
+    {
+      title: "Basic Information",
+      description: "Add title and featured image",
+      isComplete: () => form.formState.dirtyFields.title && image,
+    },
+    {
+      title: "Content",
+      description: "Write your blog content",
+      isComplete: () => desc.length > 20,
+    },
+    {
+      title: "Categories & Publishing",
+      description: "Add tags and set publishing options",
+      isComplete: () => 
+        selectedCategories.length > 0 && 
+        selectedTags.length > 0 && 
+        (status !== "scheduled" || form.watch("scheduledPublishDate")),
+    },
+  ];
 
   useEffect(() => {
     if (status === "pending") {
@@ -168,6 +176,27 @@ const BlogForm = () => {
     }
   };
 
+  const nextStep = () => {
+    if (currentStep < totalSteps) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const canProceedToNextStep = () => {
+    if (currentStep === 1) {
+      return title?.length >= 12 && !!image;
+    } else if (currentStep === 2) {
+      return desc.length >= 20;
+    }
+    return true;
+  };
+
   const onSubmit = async (data) => {
     try {
       setIsSubmitting(true);
@@ -181,19 +210,11 @@ const BlogForm = () => {
         data.scheduledPublishDate = null;
       }
 
-      // console.log({
-      //   ...data,
-      //   imageUrl,
-      //   tags: selectedTags,
-      //   categories: selectedCategories,
-      //   content: desc,
-      // });
-
       const res = await createBlog({
         title: data.title,
         content: desc,
         tags: selectedTags,
-        categories: selectedCategories,
+        category: selectedCategories,
         image: imageUrl,
         scheduledPublishDate: data.scheduledPublishDate,
       });
@@ -204,156 +225,209 @@ const BlogForm = () => {
       setSelectedTags([]);
       setImagePreview(null);
       setDesc("");
+      setCurrentStep(1);
     } catch (error) {
       console.error("Error submitting form:", error);
+      toast.error("Failed to submit blog post");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  return (
-    <div className="container mx-auto px-4 py-8 flex items-center justify-center h-[calc(100dvh-80px)]">
-      <Card className="max-w-3xl mx-auto">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">
-            Create Blog Post
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Title</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        placeholder="Enter an engaging title..."
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+  const renderStepIndicator = () => {
+    return (
+      <div className="flex items-center justify-center mb-8">
+        {steps.map((step, index) => (
+          <React.Fragment key={index}>
+            <div 
+              className={`flex flex-col items-center ${
+                index + 1 === currentStep
+                  ? "text-primary"
+                  : index + 1 < currentStep || step.isComplete()
+                  ? "text-green-500"
+                  : "text-muted-foreground"
+              }`}
+            >
+              <div 
+                className={`w-10 h-10 rounded-full flex items-center justify-center border-2 ${
+                  index + 1 === currentStep
+                    ? "border-primary bg-primary/10"
+                    : index + 1 < currentStep || step.isComplete()
+                    ? "border-green-500 bg-green-500/10"
+                    : "border-muted bg-muted/10"
+                }`}
+              >
+                {index + 1 < currentStep || step.isComplete() ? (
+                  <Check className="h-5 w-5" />
+                ) : (
+                  <span>{index + 1}</span>
                 )}
+              </div>
+              <div className="text-xs mt-2 font-medium">{step.title}</div>
+              <div className="text-xs max-w-[100px] text-center">{step.description}</div>
+            </div>
+            {index < steps.length - 1 && (
+              <div 
+                className={`w-12 h-0.5 mx-1 ${
+                  index + 1 < currentStep ? "bg-green-500" : "bg-muted"
+                }`}
               />
+            )}
+          </React.Fragment>
+        ))}
+      </div>
+    );
+  };
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <FormLabel>Blog Image</FormLabel>
-                  <div
-                    className={`border-2 border-dashed rounded-lg transition-colors h-[200px] ${
-                      isDragging ? "border-primary" : "border-muted"
-                    }`}
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onDrop={handleDrop}
-                  >
-                    {imagePreview ? (
-                      <div className="relative h-full">
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="icon"
-                          className="absolute top-2 right-2 z-10"
-                          onClick={removeImage}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                        <img
-                          src={imagePreview}
-                          alt="Preview"
-                          className="rounded-lg object-cover w-full h-full"
-                        />
-                      </div>
-                    ) : (
-                      <div className="flex flex-col items-center justify-center h-full p-4">
-                        <Upload className="w-10 h-10 mb-4 text-muted-foreground" />
-                        <p className="text-sm text-muted-foreground mb-2">
-                          Drag and drop your image here
-                        </p>
-                        <p className="text-sm text-muted-foreground mb-4">or</p>
-                        <Input
-                          id="image"
-                          type="file"
-                          accept="image/jpeg,image/png,image/webp"
-                          onChange={handleImageChange}
-                          className="hidden"
-                        />
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          onClick={() =>
-                            document.getElementById("image").click()
-                          }
-                          size="sm"
-                        >
-                          Choose File
-                        </Button>
-                      </div>
-                    )}
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <>
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Blog Title</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      placeholder="Enter an engaging title..."
+                      className="text-lg"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="mt-6">
+              <FormLabel>Featured Image</FormLabel>
+              <div
+                className={`border-2 border-dashed rounded-lg transition-colors h-[300px] mt-2 ${
+                  isDragging ? "border-primary" : "border-muted"
+                }`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
+                {imagePreview ? (
+                  <div className="relative h-full">
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-2 right-2 z-10"
+                      onClick={removeImage}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="rounded-lg object-cover w-full h-full"
+                    />
                   </div>
-                  <FormMessage>
-                    {form.formState.errors.image?.message}
-                  </FormMessage>
-                </div>
-
-                <div className="space-y-6">
-                  <div className="space-y-2">
-                    <FormLabel>Tags</FormLabel>
-                    <div className="relative">
-                      <MultiSelect
-                        options={PREDEFINED_TAGS}
-                        onValueChange={setSelectedTags}
-                        placeholder="Select up to 5 tags..."
-                        maxCount={5}
-                        value={selectedTags}
-                      />
-                      {/* <Tags className="absolute right-2 top-2.5 h-4 w-4 text-muted-foreground" /> */}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      You can select up to 5 tags
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-full p-4">
+                    <Upload className="w-16 h-16 mb-4 text-muted-foreground" />
+                    <p className="text-lg text-muted-foreground mb-2">
+                      Drag and drop your image here
                     </p>
+                    <p className="text-sm text-muted-foreground mb-4">or</p>
+                    <Input
+                      id="image"
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      onChange={handleImageChange}
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() =>
+                        document.getElementById("image").click()
+                      }
+                      size="sm"
+                      className="px-6"
+                    >
+                      <ImageIcon className="mr-2 h-4 w-4" />
+                      Choose File
+                    </Button>
                   </div>
-
-                  <div className="space-y-2">
-                    <FormLabel>Categories</FormLabel>
-                    <div className="relative">
-                      <MultiSelect
-                        options={PREDEFINED_CATEGORIES}
-                        onValueChange={setSelectedCategories}
-                        placeholder="Select up to 3 categories..."
-                        maxCount={3}
-                        value={selectedCategories}
-                      />
-                      {/* <Users2 className="absolute right-2 top-2.5 h-4 w-4 text-muted-foreground" /> */}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      You can select up to 3 categories
-                    </p>
-                  </div>
+                )}
+              </div>
+              <FormMessage>
+                {form.formState.errors.image?.message}
+              </FormMessage>
+              <p className="text-xs text-muted-foreground mt-2">
+                Accepted formats: JPG, PNG, WebP. Max size: 5MB
+              </p>
+            </div>
+          </>
+        );
+      case 2:
+        return (
+          <>
+            <FormItem>
+              <FormLabel>Blog Content</FormLabel>
+              <div className="min-h-[400px] border rounded-md">
+                <CKEditorComp content={desc} setContent={setDesc} />
+              </div>
+              {desc.length < 20 && (
+                <p className="text-xs text-destructive mt-2">
+                  Please add meaningful content to your blog post
+                </p>
+              )}
+            </FormItem>
+          </>
+        );
+      case 3:
+        return (
+          <>
+            <div className="grid grid-cols-1 gap-6">
+              <div>
+                <FormLabel>Categories</FormLabel>
+                <div className="mt-2">
+                  <MultiSelect
+                    options={transformedCategories}
+                    onValueChange={setSelectedCategories}
+                    placeholder="Select up to 3 categories..."
+                    maxCount={3}
+                    value={selectedCategories}
+                  />
                 </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  You can select up to 3 categories
+                </p>
+                {selectedCategories.length === 0 && (
+                  <p className="text-xs text-destructive mt-1">
+                    Please select at least one category
+                  </p>
+                )}
               </div>
 
-              <FormField
-                control={form.control}
-                name="content"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Content</FormLabel>
-                    <FormControl>
-                      {/* <Textarea
-                          {...field}
-                          placeholder="Write your blog content..."
-                          className="min-h-[200px]"
-                        /> */}
-                      <CKEditorComp content={desc} setContent={setDesc} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+              <div>
+                <FormLabel>Tags</FormLabel>
+                <div className="mt-2">
+                  <MultiSelect
+                    options={transformedTags}
+                    onValueChange={setSelectedTags}
+                    placeholder="Select up to 5 tags..."
+                    maxCount={5}
+                    value={selectedTags}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  You can select up to 5 tags
+                </p>
+                {selectedTags.length === 0 && (
+                  <p className="text-xs text-destructive mt-1">
+                    Please select at least one tag
+                  </p>
                 )}
-              />
+              </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <FormField
@@ -420,13 +494,72 @@ const BlogForm = () => {
                   />
                 )}
               </div>
+            </div>
+          </>
+        );
+      default:
+        return null;
+    }
+  };
 
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? "Submitting..." : "Submit Blog"}
-              </Button>
+  const isLastStep = currentStep === totalSteps;
+  const canSubmit = 
+    isLastStep && 
+    selectedCategories.length > 0 && 
+    selectedTags.length > 0 && 
+    (status !== "scheduled" || form.watch("scheduledPublishDate"));
+
+  return (
+    <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[calc(100dvh-80px)]">
+      <Card className="w-full max-w-4xl mx-auto shadow-lg">
+        <CardHeader className="space-y-1 pb-2">
+          <CardTitle className="text-2xl font-bold text-center">
+            Create Blog Post
+          </CardTitle>
+        </CardHeader>
+        
+        {renderStepIndicator()}
+        
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              {renderStepContent()}
             </form>
           </Form>
         </CardContent>
+        
+        <CardFooter className="flex justify-between border-t pt-4">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={prevStep}
+            disabled={currentStep === 1}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Previous
+          </Button>
+          
+          {isLastStep ? (
+            <Button 
+              type="button" 
+              onClick={form.handleSubmit(onSubmit)} 
+              disabled={!canSubmit || isSubmitting}
+              className="w-32"
+            >
+              {isSubmitting ? "Submitting..." : "Submit Blog"}
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              onClick={nextStep}
+              disabled={!canProceedToNextStep()}
+              className="w-32"
+            >
+              Next
+              <ArrowRight className="h-4 w-4 ml-2" />
+            </Button>
+          )}
+        </CardFooter>
       </Card>
     </div>
   );

@@ -11,7 +11,7 @@ const register = async (req, res) => {
 
     user = new User({ name, userName, email, password });
     await user.save();
-    
+
     // console.log(user);
 
     const payload = {
@@ -21,6 +21,8 @@ const register = async (req, res) => {
         email: user.email,
         name: user.name,
         profileImage: user.profileImage,
+        interests: user.interests,
+        role:user.role
       },
     };
 
@@ -37,9 +39,8 @@ const register = async (req, res) => {
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      sameSite: "None",
+      secure: true,
+      sameSite: "Strict",
     });
 
     res.status(201).json({ accessToken, message: "Registration Successful" });
@@ -71,6 +72,7 @@ const login = async (req, res) => {
         name: user.name,
         profileImage: user.profileImage,
         role: user.role,
+        interests: user.interests,
       },
     };
     const accessToken = jwt.sign(payload, process.env.JWT_SECRET, {
@@ -86,9 +88,8 @@ const login = async (req, res) => {
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      sameSite: "None",
+      secure: true,
+      sameSite: "Strict",
     });
 
     res.status(201).json({ accessToken });
@@ -170,6 +171,7 @@ const refresh = async (req, res) => {
         name: user.name,
         profileImage: user.profileImage,
         role: user.role,
+        interests: user.interests,
       },
     };
 
@@ -237,7 +239,10 @@ const getAllUser = async (req, res) => {
       return res.status(403).json({ message: "Access denied. Admins only." });
     }
 
-    const users = await User.find().skip(skip).limit(limit);
+    const users = await User.find()
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 });
     const totalUsers = await User.countDocuments();
     const totalPages = Math.ceil(totalUsers / limit);
 
@@ -270,11 +275,50 @@ const updateUserRole = async (req, res) => {
 
     user.role = role;
     await user.save();
+    return res.status(200).json({ message: "User role updated" });
   } catch (err) {
     res.status(400).json({
       message: "Server Error",
       error: err.response?.data || err.message,
     });
+  }
+};
+
+const createUserByAdmin = async (req, res) => {
+  const { name, userName, email, password, role } = req.body;
+
+  try {
+    let user = await User.findOne({ email });
+    if (user) return res.status(400).json({ message: "Email already exists" });
+
+    user = new User({ name, userName, email, password, role });
+    await user.save();
+
+    res.status(201).json({ message: "User created successfully", user });
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
+};
+
+const resetPasswordByAdmin = async (req, res) => {
+  const { userId, newPassword } = req.body;
+
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Access denied. Admins only." });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    res.status(200).json({ message: "Password reset successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
 
@@ -288,4 +332,6 @@ module.exports = {
   updatePassword,
   getAllUser,
   updateUserRole,
+  createUserByAdmin,
+  resetPasswordByAdmin,
 };

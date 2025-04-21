@@ -17,6 +17,7 @@ import { Separator } from "@/components/ui/separator";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
 import { Link, useNavigate } from "react-router-dom";
+import { useLocalStorage } from "@/hooks/use-localStorage";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -26,6 +27,7 @@ const loginSchema = z.object({
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const { login, loading } = useAuthStore();
+  const [name, setName] = useLocalStorage("interest", []);
 
   const navigate = useNavigate();
 
@@ -42,7 +44,7 @@ const Login = () => {
   });
 
   const onLogin = (data) => {
-    login(data.email, data.password, navigate);
+    login(data.email, data.password, navigate, setName);
   };
 
   return (

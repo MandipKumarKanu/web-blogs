@@ -9,6 +9,8 @@ const {
   updatePassword,
   getAllUser,
   updateUserRole,
+  createUserByAdmin,
+  resetPasswordByAdmin,
 } = require("../controllers/authController");
 const authMiddleware = require("../middleware/authMiddleware");
 const roleMiddleware = require("../middleware/roleMiddleware");
@@ -32,6 +34,18 @@ router.patch(
   authMiddleware,
   roleMiddleware(["admin"]),
   updateUserRole
+);
+router.post(
+  "/admin/create-user",
+  authMiddleware,
+  roleMiddleware(["admin"]),
+  createUserByAdmin
+);
+router.patch(
+  "/admin/reset-password",
+  authMiddleware,
+  roleMiddleware(["admin"]),
+  resetPasswordByAdmin
 );
 
 module.exports = router;

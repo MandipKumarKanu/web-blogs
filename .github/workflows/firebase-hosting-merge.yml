@@ -22,7 +22,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 18  # Change as needed
+          node-version: 20  # Change as needed
 
       - name: Install Dependencies
         run: npm install  # Use yarn or pnpm if needed

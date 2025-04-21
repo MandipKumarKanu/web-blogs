@@ -233,10 +233,13 @@ const ProfilePage = () => {
         updating={updating}
       />
 
-      <div>
-        <h2 className="text-2xl font-bold mb-4">Your Blogs</h2>
-        <UserBlogs blogs={blogs} loadingBlogs={loadingBlogs} />
-      </div>
+      {console.log(user)}
+      {user.role != "user" && (
+        <div>
+          <h2 className="text-2xl font-bold mb-4">Your Blogs</h2>
+          <UserBlogs blogs={blogs} loadingBlogs={loadingBlogs} />
+        </div>
+      )}
     </div>
   );
 };

@@ -1,24 +1,27 @@
 import BlogCard from "@/components/BlogCard";
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { getByCategory } from "@/components/api/blog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft } from "lucide-react";
 
 const CategoryPage = () => {
-  const { name } = useParams();
+  // const { name } = useParams();
+  const { category } = useParams(); 
+  const [searchParams] = useSearchParams();
+  const categoryName = searchParams.get("name") || "Category"; 
   const [filteredData, setFilteredData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
     fetchByCate();
-  }, [name]);
+  }, [category]);
 
   const fetchByCate = async () => {
     try {
       setLoading(true);
-      const response = await getByCategory(name);
+      const response = await getByCategory(category);
       setFilteredData(response.data.blogs);
     } catch (error) {
       setError("Failed to fetch blogs.");
@@ -66,7 +69,7 @@ const CategoryPage = () => {
           </button>
           <div className="space-y-2">
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight">
-              Insights in <span className="text-primary">{name}</span>
+              Insights in <span className="text-primary">{categoryName}</span>
             </h1>
             <p className="text-muted-foreground text-lg">
               Discover the latest articles and insights about{" "}

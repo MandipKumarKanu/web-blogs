@@ -8,57 +8,51 @@ const User = require("../models/User");
 // const { post } = require("../routes/notificationRoute");
 const levenshtein = require("fast-levenshtein");
 
+
 const createBlog = async (req, res) => {
-  const { title, content, tags, categories, image, scheduledPublishDate } =
+  const { title, content, tags, category, image, scheduledPublishDate } =
     req.body;
 
-  if (!["author", "admin"].includes(req.user.role)) {
-    return res
-      .status(403)
-      .json({ message: "You must be an author or admin to create a blog." });
-  }
-
   try {
-    const styledContent = addCustomClassesToHtml(content);
-
-    let status;
-    let scheduled = false;
-
-    if (req.user.role === "admin") {
-      if (scheduledPublishDate) {
-        status = "scheduled";
-        scheduled = true;
-      } else {
-        status = "published";
-      }
-    } else {
-      if (scheduledPublishDate) {
-        status = "pending";
-        scheduled = true;
-      } else {
-        status = "pending";
-      }
+    if (!Array.isArray(tags) || tags.length === 0) {
+      return res.status(400).json({ error: "Tags must be a non-empty array." });
+    }
+    if (tags.length > 5) {
+      return res
+        .status(400)
+        .json({ error: "You can select a maximum of 3 tags." });
     }
 
-    const publishDate = scheduledPublishDate
-      ? new Date(scheduledPublishDate)
-      : null;
+    if (!Array.isArray(category) || category.length === 0) {
+      return res
+        .status(400)
+        .json({ error: "Category must be a non-empty array." });
+    }
+    if (category.length > 3) {
+      return res
+        .status(400)
+        .json({ error: "You can select a maximum of 5 categories." });
+    }
+
+    const styledContent = addCustomClassesToHtml(content);
 
     const blog = await Blog.create({
       title,
       content: styledContent,
       tags,
-      categories,
+      category,
       image,
       author: req.user.id,
-      scheduledPublishDate: publishDate,
-      scheduled,
-      status,
-      publishedAt: status === "published" ? new Date() : null,
+      scheduledPublishDate: scheduledPublishDate || null,
+      scheduled: !!scheduledPublishDate,
+      status: "published",
+      publishedAt: scheduledPublishDate
+        ? new Date(scheduledPublishDate)
+        : new Date(),
     });
 
     res.status(201).json({
-      message: `Blog ${status} successfully`,
+      message: `Blog published successfully`,
       blog,
     });
   } catch (error) {
@@ -73,6 +67,7 @@ const getAllBlogs = async (req, res, next) => {
   try {
     const blogs = await Blog.find({ status: "published" })
       .populate("author", "name userName email profileImage")
+      .populate("category", "name")
       .sort({ publishedAt: -1 })
       .skip(skip)
       .limit(limit);
@@ -86,7 +81,7 @@ const getAllBlogs = async (req, res, next) => {
 
     res.status(200).json({ blogs, totalPages, currentPage: page });
   } catch (error) {
-    res.status(500).error({ error });
+    res.status(500).json({ error });
   }
 };
 
@@ -98,6 +93,7 @@ const getAllUnApprovedBlogs = async (req, res, next) => {
     const blogs = await Blog.find({ status: "pending" })
       .populate("author", "name userName email profileImage")
       .populate("likes", "name profileImage")
+      .populate("category", "name")
       .skip(skip)
       .limit(limit);
 
@@ -110,7 +106,7 @@ const getAllUnApprovedBlogs = async (req, res, next) => {
 
     res.status(200).json({ blogs, totalPages, currentPage: page });
   } catch (error) {
-    res.status(500).error({ error });
+    res.status(500).json({ error });
   }
 };
 
@@ -125,7 +121,8 @@ const getBlogById = async (req, res) => {
     const blog = await Blog.findById(id)
       .populate("author", "name userName email profileImage")
       .populate("likes", "name profileImage")
-      .populate("comments");
+      .populate("comments")
+      .populate("category", "name");
 
     if (!blog) {
       return res.status(404).json({ message: "Blog not found" });
@@ -144,6 +141,7 @@ const getBlogsByUserId = async (req, res, next) => {
   try {
     const blogs = await Blog.find({ author: req.params.authorId })
       .populate("author", "name userName email profileImage")
+      .populate("category", "name")
       .skip(skip)
       .limit(limit)
       .sort({ publishedAt: -1 });
@@ -166,17 +164,24 @@ const getBlogsByUserId = async (req, res, next) => {
 
 const deleteBlog = async (req, res, next) => {
   try {
-    const blog = await Blog.findOneAndDelete({
-      _id: req.params.id,
-      author: req.user.id,
-    });
+    const blog = await Blog.findById(req.params.id);
 
-    if (!blog)
-      return res.status(404).json({ error: "Blog not found or unauthorized" });
+    if (!blog) {
+      return res.status(404).json({ error: "Blog not found" });
+    }
+
+    if (blog.author.toString() !== req.user.id && req.user.role !== "admin") {
+      return res
+        .status(403)
+        .json({ error: "You do not have permission to delete this blog" });
+    }
+
+    await Blog.findByIdAndDelete(req.params.id);
 
     res.status(200).json({ message: "Blog deleted successfully" });
   } catch (error) {
-    res.status(500).error({ error });
+    console.error("Error deleting blog:", error);
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -229,7 +234,8 @@ const summarizeBlog = async (req, res) => {
 };
 
 const updateBlog = async (req, res) => {
-  const { title, content, image, categories, tags } = req.body;
+  const { title, content, image, category, tags, scheduledPublishDate } =
+    req.body;
   try {
     const styledContent = addCustomClassesToHtml(content);
 
@@ -251,8 +257,9 @@ const updateBlog = async (req, res) => {
         title,
         content: styledContent,
         image,
-        categories,
+        category,
         tags,
+        scheduledPublishDate,
       },
       { new: true }
     ).populate("author", "name email");
@@ -308,10 +315,9 @@ const searchBlogs = async (req, res, next) => {
   const tagsArray = tags.split(",").map((tag) => tag.trim());
 
   try {
-    const blogs = await Blog.find({ tags: { $in: tagsArray } }).populate(
-      "author",
-      "name profileImage"
-    );
+    const blogs = await Blog.find({ tags: { $in: tagsArray } })
+      .populate("author", "name profileImage")
+      .populate("category", "name");
     res.status(200).json({ blogs });
   } catch (error) {
     res.status(500).error({ error });
@@ -331,9 +337,13 @@ const getByCategory = async (req, res, next) => {
     if (category === "All") {
       blogs = await Blog.find()
         .populate("author", "name profileImage")
+        .populate("category", "name")
+
         .populate("comments");
     } else {
-      blogs = await Blog.find({ categories: category })
+      blogs = await Blog.find({ category: category })
+        .populate("category", "name")
+
         .populate("author", "name profileImage")
         .populate("comments");
     }
@@ -432,6 +442,8 @@ const getLatestBlogsByViews = async (req, res) => {
     })
       .populate("author", "name userName email profileImage")
       .sort({ views: -1 })
+      .populate("category", "name")
+
       .limit(10);
 
     if (blogs.length === 0) {
@@ -471,6 +483,14 @@ const getPopularBlog = async (req, res) => {
         },
       },
       {
+        $lookup: {
+          from: "category",
+          localField: "category",
+          foreignField: "_id",
+          as: "category",
+        },
+      },
+      {
         $unwind: "$author",
       },
       {
@@ -502,7 +522,7 @@ const getPopularBlogsOfMonth = async (req, res) => {
     const oneMonthAgo = new Date();
     oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
 
-    const blogs = await Blog.aggregate([
+    let blogs = await Blog.aggregate([
       {
         $match: { status: "published", publishedAt: { $gte: oneMonthAgo } },
       },
@@ -510,6 +530,17 @@ const getPopularBlogsOfMonth = async (req, res) => {
         $sort: { views: -1, publishedAt: -1 },
       },
       { $limit: 3 },
+      {
+        $lookup: {
+          from: "categories",
+          localField: "category",
+          foreignField: "_id",
+          as: "category",
+        },
+      },
+      {
+        $unwind: "$category",
+      },
       {
         $lookup: {
           from: "users",
@@ -527,8 +558,8 @@ const getPopularBlogsOfMonth = async (req, res) => {
           content: 1,
           views: 1,
           publishedAt: 1,
-          categories: 1,
           image: 1,
+          "category.name": 1,
           "author.name": 1,
           "author.userName": 1,
           "author.email": 1,
@@ -537,10 +568,58 @@ const getPopularBlogsOfMonth = async (req, res) => {
       },
     ]);
 
+    if (blogs.length === 0) {
+      blogs = await Blog.aggregate([
+        {
+          $match: { status: "published" },
+        },
+        {
+          $sort: { publishedAt: -1 },
+        },
+        { $limit: 3 },
+        {
+          $lookup: {
+            from: "categories",
+            localField: "category",
+            foreignField: "_id",
+            as: "category",
+          },
+        },
+        {
+          $unwind: "$category",
+        },
+        {
+          $lookup: {
+            from: "users",
+            localField: "author",
+            foreignField: "_id",
+            as: "author",
+          },
+        },
+        {
+          $unwind: "$author",
+        },
+        {
+          $project: {
+            title: 1,
+            content: 1,
+            views: 1,
+            publishedAt: 1,
+            image: 1,
+            "category.name": 1,
+            "author.name": 1,
+            "author.userName": 1,
+            "author.email": 1,
+            "author.profileImage": 1,
+          },
+        },
+      ]);
+    }
+
     res.status(200).json({ blogs });
   } catch (error) {
     console.error("Error fetching popular blogs of the month:", error);
-    res.status(500).json({ error });
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -582,14 +661,15 @@ const getBlogsByCategoryPage = async (req, res) => {
   }
 
   try {
-    const blogs = await Blog.find({ categories: { $in: categories } })
+    const blogs = await Blog.find({ category: { $in: categories } })
+      .sort({ createdAt: -1 })
       .populate("author", "name userName email profileImage")
       .populate("likes", "name profileImage");
 
     const blogsByCategoryGrp = categories.map((category) => ({
       category,
       blogs: blogs
-        .filter((blog) => blog.categories.includes(category))
+        .filter((blog) => blog.category.includes(category))
         .slice(0, 5),
     }));
 
@@ -627,7 +707,12 @@ const searchBlogByQuery = async (req, res) => {
     }
 
     const queryWords = q.toLowerCase().split(" ");
-    const blogs = await Blog.find({ status: "published" }, "title");
+    const blogs = await Blog.find({ status: "published" }, "title")
+      .select("title category tags createdAt status author")
+      .populate("author", "name email")
+
+      .populate("category", "name")
+      .populate("tags", "name");
 
     const results = blogs
       .map((blog) => {
@@ -661,6 +746,105 @@ const searchBlogByQuery = async (req, res) => {
   }
 };
 
+const getAllBlogsForAdmin = async (req, res) => {
+  const { page = 1, limit = 10 } = req.query;
+  const skip = (page - 1) * limit;
+
+  try {
+    const blogs = await Blog.find()
+      .select("title category tags createdAt author status")
+      .populate("author", "name email")
+      .populate("category", "name")
+      .populate("tags", "name")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    const totalBlogs = await Blog.countDocuments();
+    const totalPages = Math.ceil(totalBlogs / limit);
+
+    res.status(200).json({
+      blogs,
+      totalBlogs,
+      totalPages,
+      currentPage: parseInt(page),
+    });
+  } catch (error) {
+    console.error("Error fetching blogs for admin:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const getContentBasedRecommendations = async (req, res) => {
+  const { interests } = req.body;
+  const userId = req.user ? req.user.id : null;
+
+  try {
+    let recommendations;
+
+    if (Array.isArray(interests) && interests.length > 0) {
+      const query = {
+        tags: { $in: interests },
+      };
+
+      if (userId) {
+        query.likedBy = { $ne: userId };
+      }
+
+      recommendations = await Blog.find(query)
+        .limit(10)
+        .populate("author", "name")
+        .populate("category", "name")
+        .populate("tags", "name");  
+    } else {
+      recommendations = await Blog.aggregate([
+        { $match: { status: "published" } },
+        { $sample: { size: 9 } },
+        {
+          $lookup: {
+            from: "users",
+            localField: "author",
+            foreignField: "_id",
+            as: "author",
+          },
+        },
+        {
+          $lookup: {
+            from: "categories",
+            localField: "category",
+            foreignField: "_id",
+            as: "category",
+          },
+        },
+        {
+          $lookup: {
+            from: "tags",
+            localField: "tags",
+            foreignField: "_id",
+            as: "tags",
+          },
+        },
+        {
+          $project: {
+            title: 1,
+            content: 1,
+            "author.name": 1,
+            "category.name": 1,
+            "tags.name": 1,
+            createdAt: 1,
+            image: 1,
+          },
+        },
+      ]);
+    }
+
+    res.status(200).json({ recommendations });
+  } catch (error) {
+    console.error("Error fetching recommendations:", error);
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
+};
+
 module.exports = {
   createBlog,
   getAllBlogs,
@@ -683,4 +867,6 @@ module.exports = {
   getPopularBlogsOfMonth,
   getRecommendedBlogs,
   searchBlogByQuery,
+  getAllBlogsForAdmin,
+  getContentBasedRecommendations,
 };

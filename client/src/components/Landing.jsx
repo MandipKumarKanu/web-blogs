@@ -11,6 +11,7 @@ const Landing = () => {
     useBlogStore();
 
   useEffect(() => {
+    // console.log(weeklyPopularBlogs);
     if (weeklyPopularBlogs === 0) fetch();
   }, []);
 
@@ -34,7 +35,7 @@ const Landing = () => {
           </div>
 
           <div className="relative w-full">
-            <Link to={`/blog/${weeklyPopularBlogs[0]?._id}`}>
+            <Link to={`/blog/${weeklyPopularBlogs[0]?._id}` || "/"}>
               <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent rounded-[2.5rem] z-10" />
               <img
                 src={weeklyPopularBlogs[0]?.image}
@@ -44,17 +45,19 @@ const Landing = () => {
               />
               <div className="absolute top-6 left-6 z-20 flex gap-2">
                 <div className="backdrop-blur-sm bg-white/10 py-2 px-4 text-sm rounded-2xl text-white">
-                  {new Date(
-                    weeklyPopularBlogs[0]?.publishedAt
-                  ).toLocaleDateString("en-US", {
-                    weekday: "short",
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                  })}
+                  {weeklyPopularBlogs[0]?.publishedAt &&
+                    new Date(
+                      weeklyPopularBlogs[0]?.publishedAt
+                    ).toLocaleDateString("en-US", {
+                      weekday: "short",
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                    })}
                 </div>
                 <div className="backdrop-blur-sm bg-white/10 border border-white/20 py-2 px-4 text-sm rounded-2xl text-white">
-                  {weeklyPopularBlogs[0]?.categories[0]}
+                  {weeklyPopularBlogs[0]?.category &&
+                    weeklyPopularBlogs[0]?.category[0]?.name}
                 </div>
               </div>
               <div className="absolute bottom-6 left-6 right-6 z-20 space-y-4">
@@ -72,21 +75,24 @@ const Landing = () => {
 
         <div className="w-full flex flex-col gap-6">
           <div className="p-6 rounded-[2.5rem] backdrop-blur-lg bg-gray-800/5 border border-white/10 h-full">
-            <Link to={`/blog/${weeklyPopularBlogs[1]?._id}`}>
+            <Link to={`/blog/${weeklyPopularBlogs[1]?._id}` || "/"}>
               <span className="text-sm font-medium text-purple-600">
-                {weeklyPopularBlogs[1]?.categories[0]}
+                {weeklyPopularBlogs[1]?.category &&
+                  weeklyPopularBlogs[1]?.category[0]?.name}
               </span>
               <h3 className="text-2xl font-bold mt-2 mb-3 line-clamp-2 hover:text-primary transition-colors duration-300">
                 {weeklyPopularBlogs[1]?.title}
               </h3>
               <div className="text-muted-foreground line-clamp-3">
-                {weeklyPopularBlogs[1] && parse(weeklyPopularBlogs[1]?.content)}
+                {/* Safe parsing of content if it exists */}
+                {weeklyPopularBlogs[1]?.content &&
+                  parse(weeklyPopularBlogs[1]?.content)}
               </div>
             </Link>
           </div>
 
           <div className="relative group h-full">
-            <Link to={`/blog/${weeklyPopularBlogs[2]?._id}`}>
+            <Link to={`/blog/${weeklyPopularBlogs[2]?._id}` || "/"}>
               <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 to-transparent rounded-[2.5rem] z-10" />
               <img
                 src={weeklyPopularBlogs[2]?.image}
@@ -111,3 +117,4 @@ const Landing = () => {
 };
 
 export default Landing;
+  

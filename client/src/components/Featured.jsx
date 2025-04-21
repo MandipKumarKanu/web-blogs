@@ -37,7 +37,7 @@ const Featured = () => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
         {popularMonthBlog &&
-          popularMonthBlog.map((blog) => (
+          popularMonthBlog.slice(0,3).map((blog) => (
             <Card
               key={blog.id}
               className="group hover:shadow-2xl transition-shadow duration-300 overflow-hidden rounded-lg"

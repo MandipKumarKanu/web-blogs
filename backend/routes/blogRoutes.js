@@ -22,6 +22,8 @@ const {
   getPopularBlogsOfMonth,
   getRecommendedBlogs,
   searchBlogByQuery,
+  getAllBlogsForAdmin,
+  getContentBasedRecommendations,
 } = require("../controllers/blogController");
 const roleMiddleware = require("../middleware/roleMiddleware");
 const router = express.Router();
@@ -37,7 +39,17 @@ router.get("/summarize/:id", summarizeBlog);
 router.get("/popular", getPopularBlog);
 router.get("/search", searchBlogs);
 router.get("/searchByQuery", searchBlogByQuery);
+router.post(
+  "/recommendation-content",
+  getContentBasedRecommendations
+);
 router.get("/filter", getByCategory);
+router.get(
+  "/admin",
+  authMiddleware,
+  roleMiddleware(["admin"]),
+  getAllBlogsForAdmin
+);
 router.get("/popularmonth", getPopularBlogsOfMonth);
 router.get("/recommended", authMiddleware, getRecommendedBlogs);
 router.get(
@@ -47,7 +59,12 @@ router.get(
   getAllUnApprovedBlogs
 );
 router.get("/:id", getBlogById);
-router.delete("/:id", authMiddleware, deleteBlog);
+router.delete(
+  "/:id",
+  authMiddleware,
+  roleMiddleware(["author", "admin"]),
+  deleteBlog
+);
 router.patch(
   "/:id",
   authMiddleware,

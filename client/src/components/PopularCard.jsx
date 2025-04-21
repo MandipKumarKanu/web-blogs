@@ -38,7 +38,7 @@ const PopularCard = ({ post }) => {
           </Link>
           <div className="absolute top-4 left-4">
             <div className="bg-primary/80 rounded-full text-xs text-white px-4 py-1 shadow-md">
-              {post?.categories?.[0] || "Others"}
+              {post?.category?.[0]?.name || "Others"}
             </div>
           </div>
         </div>
@@ -48,7 +48,7 @@ const PopularCard = ({ post }) => {
             <h3 className="text-2xl md:text-3xl font-bold mb-4 leading-snug hover:text-primary transition-colors duration-300">
               <Link to={`/blog/${post?._id}`}>{post.title}</Link>
             </h3>
-            <div className="text-muted-foreground mb-6 line-clamp-3 text-base">
+            <div className="text-muted-foreground mb-6 line-clamp-3 text-base max-h-[105px]">
               {renderContent()}
             </div>
             <div className="flex flex-wrap items-center gap-4 md:gap-6 text-sm text-muted-foreground mb-6">

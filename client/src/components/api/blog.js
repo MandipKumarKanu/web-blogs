@@ -89,3 +89,8 @@ export async function onUpdateBlog(blogId, data) {
   const url = `blogs/${blogId}`;
   return customAxios.patch(`${url}`, data);
 }
+
+export async function deleteBlog(blogId, data) {
+  const url = `blogs/${blogId}`;
+  return customAxios.delete(`${url}`, data);
+}

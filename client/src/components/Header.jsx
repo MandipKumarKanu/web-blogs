@@ -124,6 +124,14 @@ const Header = () => {
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-40">
+                  {user?.role === "admin" && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/dashboard">
+                        <PenTool className="mr-2 h-4 w-4" />
+                        Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem asChild>
                     <Link to="/profile">
                       <User className="mr-2 h-4 w-4" />
@@ -212,6 +220,12 @@ const Header = () => {
                   onClick={() => setIsOpen(false)}
                 />
               </nav>
+              {user?.role === "admin" && (
+                <Link to="/admin/dashboard">
+                  Dashboard
+                </Link>
+              )}
+
               {user && (
                 <div className="mt-auto pt-6 border-t">
                   <button

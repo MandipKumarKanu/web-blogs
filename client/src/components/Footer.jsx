@@ -3,6 +3,7 @@ import { ArrowRight, Twitter, Linkedin, Rss, Mail } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useBlogStore } from "@/store/useBlogStore";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   const { weekError, weekLoad, weeklyPopularBlogs, getWeeklyPop } =
@@ -10,7 +11,7 @@ const Footer = () => {
 
   useEffect(() => {
     if (weeklyPopularBlogs.length === 0) fetch();
-    console.log(weeklyPopularBlogs);
+    // console.log(weeklyPopularBlogs);
   }, []);
 
   const fetch = async () => {
@@ -77,36 +78,36 @@ const Footer = () => {
             </h3>
             <ul className="space-y-2">
               <li>
-                <a
-                  href="/post-1"
+                <Link
+                  to={`blog/${weeklyPopularBlogs?.[0]?._id}`}
                   className="hover:text-primary transition-colors transform hover:scale-105 line-clamp-2"
                 >
                   {weeklyPopularBlogs?.[0]?.title}
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="/post-2"
+                <Link
+                  to={`blog/${weeklyPopularBlogs?.[1]?._id}`}
                   className="hover:text-primary transition-colors transform hover:scale-105 line-clamp-1"
                 >
                   {weeklyPopularBlogs?.[1]?.title}
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="/post-3"
+                <Link
+                  to={`blog/${weeklyPopularBlogs?.[2]?._id}`}
                   className="hover:text-primary transition-colors transform hover:scale-105 line-clamp-1"
                 >
                   {weeklyPopularBlogs?.[2]?.title}
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="/post-4"
+                <Link
+                  to={`blog/${weeklyPopularBlogs?.[3]?._id}`}
                   className="hover:text-primary transition-colors transform hover:scale-105 line-clamp-1"
                 >
                   {weeklyPopularBlogs?.[3]?.title}
-                </a>
+                </Link>
               </li>
             </ul>
           </div>

@@ -9,15 +9,27 @@ import {
   CarouselPrevious,
 } from "./ui/carousel";
 import { Card, CardContent } from "./ui/card";
-import { categoryData } from "./categorydata";
 import BlogCard from "./BlogCard";
 import { getByCategory } from "./api/blog";
+import useCategoryTagStore from "@/store/useCategoryTagStore";
 
 const Category = () => {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [filteredData, setFilteredData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const {
+    categories,
+    fetchCategoriesAndTags,
+    loading: categoryLoading,
+  } = useCategoryTagStore();
+
+  useEffect(() => {
+    if (categories.length === 0) {
+      fetchCategoriesAndTags();
+    }
+  }, []);
 
   useEffect(() => {
     fetchByCate();
@@ -35,14 +47,12 @@ const Category = () => {
     }
   };
 
-  const categories = [
+  const transformedCategories = [
     { name: "All", value: "All" },
-    { name: "Education", value: "Education" },
-    { name: "Politics", value: "Politics" },
-    { name: "Technology", value: "Technology" },
-    { name: "Health", value: "Health" },
-    { name: "Sports", value: "Sport" },
-    { name: "Environment", value: "Environment" },
+    ...categories.map((category) => ({
+      name: category.name,
+      value: category._id,
+    })),
   ];
 
   return (
@@ -61,10 +71,12 @@ const Category = () => {
       </div>
 
       <div className="mt-6 px-8">
-        <Carousel className="">
-          <CarouselContent className="-ml-1 flex gap-4">
-            {categories &&
-              categories.map((category, index) => (
+        {categoryLoading ? (
+          <p>Loading categories...</p>
+        ) : (
+          <Carousel className="">
+            <CarouselContent className="-ml-1 flex gap-4">
+              {transformedCategories.map((category, index) => (
                 <CarouselItem
                   key={index}
                   className="pl-1 basis-1/2 md:basis-1/4 lg:basis-1/6 cursor-pointer"
@@ -74,7 +86,7 @@ const Category = () => {
                     onClick={() => setSelectedCategory(category.value)}
                   >
                     <Card
-                      className={`transition-all rounded-sm duration-300 shadow-md  ${
+                      className={`transition-all rounded-sm duration-300 shadow-md ${
                         selectedCategory === category.value
                           ? "bg-primary/10 text-primary border border-primary"
                           : "text-muted-foreground hover:text-foreground hover:bg-accent"
@@ -87,24 +99,29 @@ const Category = () => {
                   </div>
                 </CarouselItem>
               ))}
-          </CarouselContent>
-          <CarouselPrevious />
-          <CarouselNext />
-        </Carousel>
+            </CarouselContent>
+            <CarouselPrevious />
+            <CarouselNext />
+          </Carousel>
+        )}
       </div>
 
       <div className="space-y-8 px-8 mt-4">
-        {filteredData && filteredData.length > 0
-          ? filteredData
-              .slice(0, 5)
-              .map((post) => (
-                <BlogCard
-                  key={post._id}
-                  post={post}
-                  selectedCategory={selectedCategory}
-                />
-              ))
-          : "No Blogs to this category"}
+        {loading ? (
+          <p>Loading blogs...</p>
+        ) : filteredData && filteredData.length > 0 ? (
+          filteredData
+            .slice(0, 5)
+            .map((post) => (
+              <BlogCard
+                key={post._id}
+                post={post}
+                selectedCategory={selectedCategory}
+              />
+            ))
+        ) : (
+          <p>No Blogs in this category</p>
+        )}
       </div>
     </section>
   );

@@ -7,6 +7,9 @@ const authRoutes = require("./routes/authRoutes");
 const blogRoutes = require("./routes/blogRoutes");
 const commentRoutes = require("./routes/commentRoutes");
 const notificationRoute = require("./routes/notificationRoute");
+const tagRoutes = require("./routes/tagRoutes");
+const categoryRoutes = require("./routes/categoryRoutes");
+const statsRoutes = require("./routes/statsRoutes");
 const startCronJob = require("./corn");
 // const socketIo = require("socket.io");
 const http = require("http");
@@ -36,6 +39,9 @@ app.use("/api/auth", authRoutes);
 app.use("/api/blogs", blogRoutes);
 app.use("/api/comment", commentRoutes);
 app.use("/api/notifications", notificationRoute);
+app.use("/api/tags", tagRoutes);
+app.use("/api/categories", categoryRoutes);
+app.use("/api/stats", statsRoutes);
 
 const PORT = process.env.PORT || 5000;
 

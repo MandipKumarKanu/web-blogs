@@ -40,11 +40,11 @@ const ProtectedRoute = () => {
     return <Loader />;
   }
 
-  if (token && user && user.role === "user") {
-    return <Navigate to="/" replace />;
-  }
+  // if (!token || !user ) {
+  //   return <Navigate to="/" replace />;
+  // }
 
-  if (token) {
+  if (token && user) {
     return <Outlet />;
   }
   return <Navigate to="/login" replace />;

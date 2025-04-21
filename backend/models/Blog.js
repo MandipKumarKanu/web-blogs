@@ -10,8 +10,20 @@ const BlogSchema = new mongoose.Schema(
     },
     image: { type: String },
     content: { type: String, required: true },
-    tags: [{ type: String }],
-    categories: [{ type: String }],
+    tags: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Tag",
+        required: true,
+      },
+    ], 
+    category: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Category",
+        required: true,
+      },
+    ],
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", index: true }],
     comments: [
       { type: mongoose.Schema.Types.ObjectId, ref: "Comment", required: true },

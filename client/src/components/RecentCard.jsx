@@ -24,7 +24,7 @@ const RecentCard = ({ post }) => {
           </div>
           <div className="absolute top-4 left-4">
             <div className="bg-primary/60 rounded-full text-xs text-white px-4 py-1">
-              {post?.categories?.[0]}
+              {post?.category?.[0]?.name}
             </div>
           </div>
         </div>
@@ -36,7 +36,7 @@ const RecentCard = ({ post }) => {
                 {post.title}
               </h3>
             </Link>
-            <div className="text-muted-foreground mb-6 line-clamp-3">
+            <div className="text-muted-foreground mb-6 line-clamp-3 max-h-[105px]">
               {parse(post.content)}
             </div>
 

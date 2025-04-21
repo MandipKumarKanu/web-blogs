@@ -27,12 +27,11 @@ import ShrinkDescription from "@/components/ShrinkDescription";
 import CommentsDialog from "@/components/CommentSection";
 import RecommendedBlog from "@/components/RecommendedBlog";
 import { Skeleton } from "@/components/ui/skeleton";
+import usePageStayTimer from "@/hooks/useIntersetCalc";
 
 const configureDOMPurify = () => {
   DOMPurify.addHook("afterSanitizeAttributes", function (node) {
-    // Allow iframes from trusted sources
     if (node.tagName === "IFRAME") {
-      // Allow YouTube embeds
       if (
         node.getAttribute("src") &&
         (node.getAttribute("src").indexOf("youtube.com") > -1 ||
@@ -42,14 +41,12 @@ const configureDOMPurify = () => {
       }
     }
 
-    // Make links open in new tab
     if (node.tagName === "A") {
       node.setAttribute("target", "_blank");
       node.setAttribute("rel", "noopener noreferrer");
     }
   });
 
-  // Configure DOMPurify to allow specific tags and attributes
   const purifyConfig = {
     ADD_TAGS: ["iframe", "blockquote", "script"],
     ADD_ATTR: [
@@ -106,6 +103,8 @@ export default function BlogPage() {
   const { token, user } = useAuthStore();
   const navigate = useNavigate();
   const { id } = useParams();
+
+  // const tags = blog?.tags?.map((tag) => tag.name) || [];
 
   const currentUrl = `${window.location.origin}${location.pathname}`;
 
@@ -190,6 +189,8 @@ export default function BlogPage() {
       const response = await getBlogById(id);
       const fetchedBlog = response.data.blog;
       setBlog(fetchedBlog);
+      usePageStayTimer(fetchedBlog.tags);
+
       setCommentCount(fetchedBlog.comments.length || 0);
     } catch (error) {
       setError(getErrorMessage(error));
@@ -240,14 +241,14 @@ export default function BlogPage() {
     return <BlogSkeleton />;
   }
 
-  if (error) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-        <p className="text-red-500">{error}</p>
-        <Button onClick={fetchBlog}>Try Again</Button>
-      </div>
-    );
-  }
+  // if (error) {
+  //   return (
+  //     <div className="min-h-screen flex flex-col items-center justify-center gap-4">
+  //       <p className="text-red-500">{error}</p>
+  //       <Button onClick={fetchBlog}>Try Again</Button>
+  //     </div>
+  //   );
+  // }
 
   if (!blog) {
     return (
@@ -260,26 +261,22 @@ export default function BlogPage() {
   const processEmbeddedContent = (content) => {
     if (!content) return null;
 
-    // First decode HTML entities
     const decodedContent = content
       .replace(/&lt;/g, "<")
       .replace(/&gt;/g, ">")
       .replace(/&amp;/g, "&");
 
-    // Remove script tags for sanitization, we'll add them back later
     const contentWithoutScripts = decodedContent.replace(
       /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
       ""
     );
 
-    // Sanitize the content
     const purifyConfig = configureDOMPurify();
     const sanitizedContent = DOMPurify.sanitize(
       contentWithoutScripts,
       purifyConfig
     );
 
-    // Parse the sanitized content into React components
     return parse(sanitizedContent);
   };
 
@@ -377,7 +374,6 @@ export default function BlogPage() {
             )
           }
           onMouseLeave={handleMouseLeave}
-          // key={index}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent pointer-events-none" />
         <h2 className="absolute bottom-0 left-0 right-0 mx-auto p-4 text-center text-lg sm:text-xl md:text-3xl lg:text-4xl font-bold text-foreground/90 leading-tight drop-shadow-lg max-w-[90%] sm:max-w-[80%] md:max-w-[70%] lg:max-w-[60%]">
@@ -445,7 +441,10 @@ export default function BlogPage() {
                   Category
                 </span>
                 <span className="block text-foreground">
-                  {blog.categories && blog.categories.join(", ")}
+                  <span className="block text-foreground">
+                    {blog.category &&
+                      blog.category.map((cat) => cat.name).join(", ")}
+                  </span>
                 </span>
               </div>
               <div>
@@ -475,7 +474,7 @@ export default function BlogPage() {
         </aside>
 
         <div
-          className="order-last lg:order-first lg:col-span-2 space-y-8"
+          className="order-last lg:order-first lg:col-span-2 space-y-8 lg:sticky top-20 self-start"
           ref={blogContentRef}
         >
           <ShrinkDescription desc={blogContent} />
@@ -496,8 +495,8 @@ export default function BlogPage() {
           />
         </div>
       )}
+      {user && <RecommendedBlog />}
 
-      <RecommendedBlog />
       <CommentsDialog
         blogId={id}
         isOpen={commentsOpen}

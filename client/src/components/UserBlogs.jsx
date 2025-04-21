@@ -19,6 +19,7 @@ import {
   Trash,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { deleteBlog } from "./api/blog";
 
 const UserBlogs = ({ blogs, loadingBlogs, onDeleteBlog }) => {
   const navigate = useNavigate();
@@ -33,7 +34,7 @@ const UserBlogs = ({ blogs, loadingBlogs, onDeleteBlog }) => {
   const handleDelete = useCallback(
     async (blogId) => {
       if (window.confirm("Are you sure you want to delete this blog post?")) {
-        await onDeleteBlog(blogId);
+        await deleteBlog(blogId);
       }
     },
     [onDeleteBlog]

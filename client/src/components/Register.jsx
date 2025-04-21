@@ -18,7 +18,7 @@ import { Eye, EyeOff, Mail, Lock, User, AtSign } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
 import { Link, useNavigate } from "react-router-dom";
 
-const signupSchema = z
+export const signupSchema = z
   .object({
     name: z.string().min(2, "Name must be at least 2 characters"),
     username: z

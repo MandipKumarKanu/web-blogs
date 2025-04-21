@@ -1,4 +1,10 @@
-import { Route, Routes, useLocation } from "react-router-dom";
+import {
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+  Navigate,
+} from "react-router-dom";
 import { ThemeProvider } from "./components/context/theme-provider";
 import Home from "./components/Home";
 import Header from "./components/Header";
@@ -27,22 +33,36 @@ import TopicPage from "./pages/TopicPage";
 import CategoryPage from "./pages/CategoryPage";
 import ProfilePage from "./pages/ProfilePage";
 import Notification from "./components/Notification";
-// import ProtectedRoute from "./components/ProtectedRoute";
 import Loader from "./components/Loader";
 import ProtectedRoute from "./components/ProtectedRoute";
 import FAQPage from "./components/FAQ";
 import SearchComponent from "./components/SearchComponent";
+import Dashboard from "./components/layout/Dashboard";
+import useCategoryTagStore from "@/store/useCategoryTagStore";
+import { Plus } from "lucide-react";
+import ErrorBoundary from "./components/ErrorBoundary";
+import NotFound from "./pages/NotFound";
+import { useLocalStorage } from "./hooks/use-localStorage";
 const EditBlog = lazy(() => import("./components/EditBlog"));
 
 const App = () => {
-  const { token, setUser, setToken } = useAuthStore();
+  const { token, setUser, setToken, user } = useAuthStore();
   const [loading, setLoading] = useState(true);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [name, setName] = useLocalStorage("interest", []);
+
+  const {
+    fetchCategoriesAndTags,
+    categories,
+    tags,
+    loading: categoryTagLoading,
+  } = useCategoryTagStore();
 
   useEffect(() => {
     setupInterceptors(() => token, setToken, setUser);
   }, []);
 
-  const location = useLocation();
   useResetScrollPosition(location);
 
   useEffect(() => {
@@ -56,6 +76,7 @@ const App = () => {
         if (token) {
           setUser(decodedUser);
           setToken(token);
+          setName(decodedUser.interests);
         }
       } catch (error) {
         localStorage.setItem("loggedIn", "");
@@ -71,47 +92,76 @@ const App = () => {
     }
   }, [token, setToken, setUser]);
 
-  if (loading) {
+  useEffect(() => {
+    fetchCategoriesAndTags();
+  }, []);
+
+  if (loading || categoryTagLoading) {
     return <Loader />;
   }
 
+  const isAdminRoute = location.pathname.startsWith("/admin");
+
+  const canAddBlog =
+    token && user && (user.role === "admin" || user.role === "author");
+
   return (
     <ThemeProvider defaultTheme="light">
-      <Header />
-      <div className="min-h-[100dvh]">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/blogs" element={<AllBlog />} />
-          <Route path="/blog/:id" element={<BlogPage />} />
-          <Route path="/category/:name" element={<CategoryPage />} />
-          <Route path="/popular" element={<PopularBlog />} />
-          <Route path="/topics" element={<TopicPage />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/forget" element={<ForgotPassword />} />
-          <Route path="/new" element={<NewBlog />} />
-          <Route path="/faq" element={<FAQPage />} />
+      <ErrorBoundary>
+        {!isAdminRoute && <Header />}
+        <div className="min-h-[100dvh] relative">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/blogs" element={<AllBlog />} />
+            <Route path="/blog/:id" element={<BlogPage />} />
+            <Route path="/category/:category" element={<CategoryPage />} />
+            <Route path="/popular" element={<PopularBlog />} />
+            <Route path="/topics" element={<TopicPage />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/forget" element={<ForgotPassword />} />
+            <Route path="/new" element={<NewBlog />} />
+            <Route path="/faq" element={<FAQPage />} />
 
-          <Route element={<ProtectedRoute />}>
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/add" element={<Add />} />
-            <Route path="/allblogs" element={<ApproveBlog />} />
-            <Route
-              path="/edit/:blogId"
-              element={
-                <Suspense fallback={<div>Loading editor...</div>}>
-                  <EditBlog />
-                </Suspense>
-              }
-            />
-          </Route>
-        </Routes>
-      </div>
-      {/* <div>
-        <SearchComponent />
-      </div> */}
-      <Footer />
-      <Toaster richColors />
+            <Route element={<ProtectedRoute />}>
+              <Route
+                path="/admin/*"
+                element={
+                  user?.role === "admin" ? (
+                    <Dashboard />
+                  ) : (
+                    <Navigate to="/" replace />
+                  )
+                }
+              />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/add" element={<Add />} />
+              <Route path="/allblogs" element={<ApproveBlog />} />
+              <Route
+                path="/edit/:blogId"
+                element={
+                  <Suspense fallback={<div>Loading editor...</div>}>
+                    <EditBlog />
+                  </Suspense>
+                }
+              />
+            </Route>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+
+          {canAddBlog && (
+            <button
+              onClick={() => navigate("/add")}
+              title="Add Blog"
+              className="fixed bottom-8 right-8 bg-primary text-white p-4 rounded-full shadow-lg hover:bg-primary-dark transition"
+            >
+              <Plus className="h-6 w-6" />
+            </button>
+          )}
+        </div>
+        {!isAdminRoute && <Footer />}
+        <Toaster richColors />
+      </ErrorBoundary>
     </ThemeProvider>
   );
 };
