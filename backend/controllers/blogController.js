@@ -553,6 +553,18 @@ const getPopularBlogsOfMonth = async (req, res) => {
         $unwind: "$author",
       },
       {
+        $group: {
+          _id: "$_id",
+          title: { $first: "$title" },
+          content: { $first: "$content" },
+          views: { $first: "$views" },
+          publishedAt: { $first: "$publishedAt" },
+          image: { $first: "$image" },
+          category: { $first: "$category" },
+          author: { $first: "$author" },
+        },
+      },
+      {
         $project: {
           title: 1,
           content: 1,
@@ -598,6 +610,18 @@ const getPopularBlogsOfMonth = async (req, res) => {
         },
         {
           $unwind: "$author",
+        },
+        {
+          $group: {
+            _id: "$_id",
+            title: { $first: "$title" },
+            content: { $first: "$content" },
+            views: { $first: "$views" },
+            publishedAt: { $first: "$publishedAt" },
+            image: { $first: "$image" },
+            category: { $first: "$category" },
+            author: { $first: "$author" },
+          },
         },
         {
           $project: {
