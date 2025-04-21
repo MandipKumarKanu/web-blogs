@@ -41,9 +41,8 @@ const register = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       maxAge: 7 * 24 * 60 * 60 * 1000,
-      sameSite: "None",
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "lax",
     });
-
 
     res.status(201).json({ accessToken, message: "Registration Successful" });
   } catch (err) {
@@ -92,9 +91,9 @@ const login = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       maxAge: 7 * 24 * 60 * 60 * 1000,
-      sameSite: "None",
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "lax",
     });
-    
+
     res.status(201).json({ accessToken });
   } catch (error) {
     // console.error(err.message);
@@ -160,30 +159,53 @@ const refresh = async (req, res) => {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
-  const user = await User.findOne({ refreshToken });
-  if (!user) return res.status(403).json({ message: "Forbidden" });
+  try {
+    const user = await User.findOne({ refreshToken });
+    if (!user) return res.status(403).json({ message: "Forbidden" });
 
-  jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, (err, decoded) => {
-    if (err) return res.status(403).json({ message: "Forbidden" });
+    jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, async (err, decoded) => {
+      if (err) {
+        if (err.name === "TokenExpiredError") {
+          return res.status(403).json({ message: "Refresh token expired. Please log in again." });
+        }
+        return res.status(403).json({ message: "Invalid refresh token" });
+      }
 
-    const payload = {
-      user: {
-        userName: user.userName,
-        id: user._id,
-        email: user.email,
-        name: user.name,
-        profileImage: user.profileImage,
-        role: user.role,
-        interests: user.interests,
-      },
-    };
+      const payload = {
+        user: {
+          userName: user.userName,
+          id: user._id,
+          email: user.email,
+          name: user.name,
+          profileImage: user.profileImage,
+          role: user.role,
+          interests: user.interests,
+        },
+      };
 
-    const accessToken = jwt.sign(payload, process.env.JWT_SECRET, {
-      expiresIn: "15m",
+      const newAccessToken = jwt.sign(payload, process.env.JWT_SECRET, {
+        expiresIn: "15m",
+      });
+
+      const newRefreshToken = jwt.sign(payload, process.env.JWT_REFRESH_SECRET, {
+        expiresIn: "7d",
+      });
+
+      user.refreshToken = newRefreshToken;
+      await user.save();
+
+      res.cookie("refreshToken", newRefreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        sameSite: process.env.NODE_ENV === "production" ? "None" : "lax",
+      });
+
+      res.json({ accessToken: newAccessToken });
     });
-
-    res.json({ accessToken });
-  });
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
 };
 
 const getUserById = async (req, res) => {
