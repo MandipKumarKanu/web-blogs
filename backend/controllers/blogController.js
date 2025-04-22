@@ -227,7 +227,6 @@ const summarizeBlog = async (req, res) => {
       summary: result?.candidates?.[0].content?.parts?.[0].text,
     });
   } catch (error) {
-    // console.error("Error summarizing blog:", error);
     res.status(500).json({ error: error.message });
   }
 };
