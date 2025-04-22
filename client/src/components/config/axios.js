@@ -28,11 +28,9 @@ export const setupInterceptors = (getToken, setToken, updateUser) => {
 
   customAxios.interceptors.request.use(
     async (config) => {
-      const token = await tokenPromise;
+      const token = getToken && getToken();
       if (token) {
-        const decoded = jwtDecode(token);
-        // console.log(decoded, "axios");
-        config.headers.Authorization =` Bearer ${token}`;
+        config.headers.Authorization = `Bearer ${token}`;
       }
       return config;
     },

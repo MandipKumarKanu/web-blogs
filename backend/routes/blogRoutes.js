@@ -26,6 +26,7 @@ const {
   getContentBasedRecommendations,
 } = require("../controllers/blogController");
 const roleMiddleware = require("../middleware/roleMiddleware");
+const userMiddleware = require("../middleware/userMiddleware");
 const router = express.Router();
 
 router.post(
@@ -40,7 +41,7 @@ router.get("/popular", getPopularBlog);
 router.get("/search", searchBlogs);
 router.get("/searchByQuery", searchBlogByQuery);
 router.post(
-  "/recommendation-content",
+  "/recommendation-content", userMiddleware,
   getContentBasedRecommendations
 );
 router.get("/filter", getByCategory);

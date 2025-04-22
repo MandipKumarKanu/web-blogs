@@ -333,7 +333,7 @@ const searchBlogs = async (req, res, next) => {
   const tagsArray = tags.split(",").map((tag) => tag.trim());
 
   try {
-    const blogs = await Blog.find({ tags: { $in: tagsArray } })
+    const blogs = await Blog.find({ tags: { $in: tagsArray }, status: "published" }) // Add status filter
       .populate("author", "name profileImage")
       .populate("category", "name");
     res.status(200).json({ blogs });
@@ -353,15 +353,13 @@ const getByCategory = async (req, res, next) => {
   try {
     let blogs;
     if (category === "All") {
-      blogs = await Blog.find()
+      blogs = await Blog.find({ status: "published" })
         .populate("author", "name profileImage")
         .populate("category", "name")
-
         .populate("comments");
     } else {
-      blogs = await Blog.find({ category: category })
+      blogs = await Blog.find({ category: category, status: "published" })
         .populate("category", "name")
-
         .populate("author", "name profileImage")
         .populate("comments");
     }
@@ -399,7 +397,7 @@ const blogLikes = async (req, res) => {
 
         // await notification.save();
         // io.to(blog.author.toString()).emit("newNotification", notification);
-        updateUserInterests(userId, blog.tags);
+        updateUserInterests(userId, blog.category);
       } else {
         await Blog.findByIdAndUpdate(
           req.params.id,
@@ -714,7 +712,7 @@ const getBlogsByCategoryPage = async (req, res) => {
   }
 
   try {
-    const blogs = await Blog.find({ category: { $in: categories } })
+    const blogs = await Blog.find({ category: { $in: categories }, status: "published" }) 
       .sort({ createdAt: -1 })
       .populate("author", "name userName email profileImage")
       .populate("likes", "name profileImage");
@@ -833,26 +831,26 @@ const getContentBasedRecommendations = async (req, res) => {
   const userId = req.user ? req.user.id : null;
 
   try {
-    let recommendations;
+    let recommendations = [];
 
     if (Array.isArray(interests) && interests.length > 0) {
-      const query = {
-        tags: { $in: interests },
-      };
-
-      if (userId) {
-        query.likedBy = { $ne: userId };
-      }
-
-      recommendations = await Blog.find(query)
-        .limit(12)
+      const blogs = await Blog.find({
+        category: { $in: interests },
+        status: "published",
+        // ...(userId && { likes: { $ne: userId } }),
+      })
+        .sort({ createdAt: -1 })
         .populate("author", "name")
         .populate("category", "name")
         .populate("tags", "name");
+
+      const shuffledBlogs = blogs.sort(() => Math.random() - 0.5);
+      recommendations = shuffledBlogs.slice(0, 12);
     } else {
       recommendations = await Blog.aggregate([
         { $match: { status: "published" } },
-        { $sample: { size: 11 } },
+        { $sample: { size: 12 } },
+        { $sort: { createdAt: -1 } },
         {
           $lookup: {
             from: "users",
@@ -861,6 +859,7 @@ const getContentBasedRecommendations = async (req, res) => {
             as: "author",
           },
         },
+        { $unwind: "$author" },
         {
           $lookup: {
             from: "categories",
@@ -869,6 +868,7 @@ const getContentBasedRecommendations = async (req, res) => {
             as: "category",
           },
         },
+        { $unwind: "$category" },
         {
           $lookup: {
             from: "tags",

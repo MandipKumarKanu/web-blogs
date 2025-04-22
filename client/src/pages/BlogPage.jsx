@@ -148,6 +148,25 @@ export default function BlogPage() {
     }
   }, [blog]);
 
+  useEffect(() => {
+    if (blog && !user) {
+      const catId = blog.category?.[0]?._id;
+      if (catId) {
+        let interests = [];
+        try {
+          interests = JSON.parse(localStorage.getItem("interest")) || [];
+        } catch {
+          interests = [];
+        }
+        const updatedInterests = [...new Set([...interests, catId])];
+        if (updatedInterests.length > 5) {
+          updatedInterests.splice(0, updatedInterests.length - 5);
+        }
+        localStorage.setItem("interest", JSON.stringify(updatedInterests));
+      }
+    }
+  }, [blog, user]);
+
   const incrementView = async () => {
     try {
       await incView(id);
@@ -211,6 +230,21 @@ export default function BlogPage() {
         ...prev,
         likes: new Array(response.data.likesCount).fill(null),
       }));
+
+      if (response.data.isLiked && blog?.category?.[0]?._id) {
+        let interests = [];
+        try {
+          interests = JSON.parse(localStorage.getItem("interest")) || [];
+        } catch {
+          interests = [];
+        }
+        const catId = blog.category[0]._id;
+        const updatedInterests = [...new Set([...interests, catId])];
+        if (updatedInterests.length > 5) {
+          updatedInterests.splice(0, updatedInterests.length - 5);
+        }
+        localStorage.setItem("interest", JSON.stringify(updatedInterests));
+      }
     } catch (error) {
       console.log(getErrorMessage(error));
     } finally {

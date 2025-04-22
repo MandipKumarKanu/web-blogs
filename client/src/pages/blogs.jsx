@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import DataTable from "@/components/reactTable";
 
 const BlogsPage = () => {
   const [blogs, setBlogs] = useState([]);
@@ -20,7 +21,6 @@ const BlogsPage = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [query, setQuery] = useState("");
   const [searchLoading, setSearchLoading] = useState(false);
-
   const navigate = useNavigate();
 
   const fetchBlogs = async (currentPage = 1) => {
@@ -44,7 +44,6 @@ const BlogsPage = () => {
       fetchBlogs(page);
       return;
     }
-
     setSearchLoading(true);
     try {
       const response = await customAxios.get(
@@ -67,7 +66,6 @@ const BlogsPage = () => {
 
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this blog?")) return;
-
     try {
       await customAxios.delete(`/blogs/${id}`);
       setBlogs((prevBlogs) => prevBlogs.filter((blog) => blog._id !== id));
@@ -90,17 +88,144 @@ const BlogsPage = () => {
     fetchBlogs(page);
   }, [page]);
 
-  const handlePreviousPage = () => {
-    if (page > 1) {
-      setPage((prevPage) => prevPage - 1);
-    }
+  const handlePageChange = (newPage) => {
+    setPage(newPage);
   };
 
-  const handleNextPage = () => {
-    if (page < totalPages) {
-      setPage((prevPage) => prevPage + 1);
-    }
-  };
+  const customSearchComponent = (
+    <div className="flex items-center space-x-2">
+      <div className="flex-1 relative">
+        <Label htmlFor="search" className="sr-only">
+          Search posts
+        </Label>
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+        <Input
+          id="search"
+          placeholder="Search posts..."
+          className="w-full pl-10"
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onInput={(e) => {
+            if (e.target.value === "") handleClearSearch();
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") handleSearch();
+          }}
+        />
+        {query && (
+          <button
+            onClick={handleClearSearch}
+            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+          >
+            ✕
+          </button>
+        )}
+      </div>
+      <Button variant="outline" onClick={handleSearch} disabled={searchLoading}>
+        {searchLoading ? "Searching..." : <Search className="h-4 w-4" />}
+      </Button>
+    </div>
+  );
+
+  const columns = useMemo(
+    () => [
+      {
+        accessorKey: "_id",
+        header: "ID",
+        cell: ({ row }) => `#${row.original._id.slice(-4)}`,
+      },
+      {
+        accessorKey: "title",
+        header: "Title",
+      },
+      {
+        accessorKey: "category",
+        header: "Category",
+        cell: ({ row }) =>
+          row.original.category.map((cat) => cat.name).join(", ") ||
+          "Uncategorized",
+      },
+      {
+        accessorKey: "tags",
+        header: "Tags",
+        cell: ({ row }) =>
+          row.original.tags?.map((tag) => tag.name).join(", ") || "No Tags",
+      },
+      {
+        accessorKey: "createdAt",
+        header: "Created At",
+        cell: ({ row }) =>
+          new Date(row.original.createdAt).toLocaleDateString(),
+      },
+      {
+        accessorKey: "author",
+        header: "Author",
+        cell: ({ row }) => row.original.author?.name || "Unknown",
+      },
+      {
+        accessorKey: "status",
+        header: "Status",
+        cell: ({ row }) => (
+          <span
+            className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${
+              row.original.status === "Published"
+                ? "bg-green-100 text-green-800"
+                : row.original.status === "Draft"
+                ? "bg-yellow-100 text-yellow-800"
+                : "bg-red-100 text-red-800"
+            }`}
+          >
+            {row.original.status}
+          </span>
+        ),
+      },
+      {
+        id: "actions",
+        header: "Actions",
+        cell: ({ row }) => (
+          <div className="flex justify-end space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleView(row.original._id)}
+            >
+              View
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => handleEdit(row.original._id)}>
+                  Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => handleDelete(row.original._id)}
+                  className="text-red-500"
+                >
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        ),
+        meta: {
+          className: "text-right",
+        },
+      },
+    ],
+    []
+  );
+
+  const extraHtml = (
+    <Button>
+      <Plus className="mr-2 h-4 w-4" />
+      Create Post
+    </Button>
+  );
 
   return (
     <main className="flex-1 overflow-y-auto p-4 md:p-6">
@@ -112,176 +237,30 @@ const BlogsPage = () => {
               Manage your blog content
             </p>
           </div>
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Create Post
-          </Button>
+          {extraHtml}
         </div>
 
-        <div className="flex items-center space-x-2">
-          <div className="flex-1 relative">
-            <Label htmlFor="search" className="sr-only">
-              Search posts
-            </Label>
-            <Input
-              id="search"
-              placeholder="Search posts..."
-              className="w-full"
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onInput={(e) => {
-                if (e.target.value === "") handleClearSearch();
-              }}
-            />
-            {query && (
-              <button
-                onClick={handleClearSearch}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-              >
-                ✕
-              </button>
-            )}
-          </div>
-          <Button
-            variant="outline"
-            onClick={handleSearch}
-            disabled={searchLoading}
-          >
-            {searchLoading ? "Searching..." : <Search className="h-4 w-4" />}
-          </Button>
-        </div>
+        {customSearchComponent}
 
         <div className="overflow-x-auto border-collapse border border-border bg-card rounded-lg">
-          {loading ? (
-            <p className="text-center py-4">Loading blogs...</p>
+          {loading || searchLoading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
           ) : error ? (
             <p className="text-center py-4 text-red-500">{error}</p>
           ) : (
-            <table className="min-w-full ">
-              <thead>
-                <tr className="bg-muted/10">
-                  <th className="px-4 py-2 text-left text-sm font-medium text-muted-foreground">
-                    ID
-                  </th>
-                  <th className="px-4 py-2 text-left text-sm font-medium text-muted-foreground">
-                    Title
-                  </th>
-                  <th className="px-4 py-2 text-left text-sm font-medium text-muted-foreground">
-                    Category
-                  </th>
-                  <th className="px-4 py-2 text-left text-sm font-medium text-muted-foreground">
-                    Tags
-                  </th>
-                  <th className="px-4 py-2 text-left text-sm font-medium text-muted-foreground">
-                    Created At
-                  </th>
-                  <th className="px-4 py-2 text-left text-sm font-medium text-muted-foreground">
-                    Author
-                  </th>
-                  <th className="px-4 py-2 text-left text-sm font-medium text-muted-foreground">
-                    Status
-                  </th>
-                  <th className="px-4 py-2 text-right text-sm font-medium text-muted-foreground">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {blogs.map((blog, index) => (
-                  <tr
-                    key={blog._id}
-                    className={`border-t border-border ${
-                      index % 2 === 0 ? "bg-muted/5" : "bg-card"
-                    }`}
-                  >
-                    <td className="px-4 py-2 text-sm text-foreground">
-                      #{blog._id.slice(-4)}
-                    </td>
-                    <td className="px-4 py-2 text-sm text-foreground">
-                      {blog.title}
-                    </td>
-                    <td className="px-4 py-2 text-sm text-foreground">
-                      {blog.category.map((cat) => cat.name).join(", ") ||
-                        "Uncategorized"}
-                    </td>
-                    <td className="px-4 py-2 text-sm text-foreground">
-                      {blog.tags?.map((tag) => tag.name).join(", ") ||
-                        "No Tags"}
-                    </td>
-                    <td className="px-4 py-2 text-sm text-foreground">
-                      {new Date(blog.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="px-4 py-2 text-sm text-foreground">
-                      {blog.author?.name || "Unknown"}
-                    </td>
-                    <td className="px-4 py-2 text-sm text-foreground">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${
-                          blog.status === "Published"
-                            ? "bg-green-100 text-green-800"
-                            : blog.status === "Draft"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-red-100 text-red-800"
-                        }`}
-                      >
-                        {blog.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-2 text-right text-sm text-foreground">
-                      <div className="flex justify-end space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleView(blog._id)}
-                        >
-                          View
-                        </Button>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent>
-                            <DropdownMenuItem onClick={() => handleEdit(blog._id)}>
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleDelete(blog._id)}
-                              className="text-red-500"
-                            >
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <DataTable
+              columns={columns}
+              data={blogs}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+              currentPage={page}
+              isLoading={false}
+              blogStyle={true}
+              hideSearch={true}
+            />
           )}
-        </div>
-
-        <div className="flex justify-between items-center mt-4">
-          <Button
-            variant="outline"
-            disabled={page === 1}
-            onClick={handlePreviousPage}
-          >
-            Previous
-          </Button>
-          <p>
-            Page {page} of {totalPages}
-          </p>
-          <Button
-            variant="outline"
-            disabled={page === totalPages}
-            onClick={handleNextPage}
-          >
-            Next
-          </Button>
         </div>
       </div>
     </main>

@@ -8,6 +8,8 @@ import { Card, CardHeader } from "./ui/card";
 import { ArrowUpRight, Share2 } from "lucide-react";
 import { FaRegHeart } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import { useAuthStore } from "@/store/useAuthStore";
+import axios from "axios";
 
 const BlogCard = ({ blog }) => {
   return (
@@ -25,11 +27,13 @@ const BlogCard = ({ blog }) => {
       <CardHeader className="space-y-2 p-4">
         <Link to={`/blog/${blog?._id}`}>
           <h2 className="text-xl font-semibold text-foreground mb-4 leading-tight line-clamp-2 h-[3rem] overflow-hidden hover:text-primary transition-colors duration-300">
-            {blog.title}
+            {blog?.title || ""}
           </h2>
         </Link>
         <div className="text-sm text-muted-foreground">
-          {blog?.category?.[0].name}
+          {Array.isArray(blog.category)
+            ? blog.category[0].name
+            : blog.category?.name || ""}
         </div>
       </CardHeader>
 
@@ -64,12 +68,15 @@ const Recommendation = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const { user, token } = useAuthStore();
+
   const fetchRecommendations = async () => {
     setLoading(true);
     try {
-      const response = await customAxios.post("/blogs/recommendation-content", {
+      let response = await customAxios.post("/blogs/recommendation-content", {
         interests,
       });
+
       setRecommendations(response.data.recommendations);
     } catch (err) {
       console.error("Error fetching recommendations:", err);
@@ -81,7 +88,7 @@ const Recommendation = () => {
 
   useEffect(() => {
     fetchRecommendations();
-  }, [interests]);
+  }, [interests, user, token]);
 
   if (loading) {
     return (
