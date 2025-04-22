@@ -52,6 +52,7 @@ import { CKEditorComp } from "@/components/ckEditor";
 import useCategoryTagStore from "@/store/useCategoryTagStore";
 import { useNavigate, useParams } from "react-router-dom";
 import { customAxios } from "./config/axios";
+import getErrorMessage from "./utils/getErrorMsg";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -298,10 +299,11 @@ const EditBlog = ({ eid }) => {
         status: data.status,
       });
 
+      navigate("/admin/blogs")
       toast.success("Blog updated successfully");
     } catch (error) {
       console.error("Error updating blog:", error);
-      toast.error("Failed to update blog post");
+      toast.error(getErrorMessage(error));
     } finally {
       setIsSubmitting(false);
     }
@@ -459,13 +461,13 @@ const EditBlog = ({ eid }) => {
           <>
             <div className="grid grid-cols-1 gap-6">
               <div>
-                <FormLabel>Categories</FormLabel>
+                <FormLabel>Category</FormLabel>
                 <div className="mt-2">
                   <MultiSelect
                     options={transformedCategories}
                     onValueChange={setSelectedCategories}
-                    placeholder="Select up to 3 categories..."
-                    maxCount={3}
+                    placeholder="Select up to 3 category"
+                    maxCount={1}
                     value={selectedCategories}
                   />
                 </div>
@@ -485,13 +487,13 @@ const EditBlog = ({ eid }) => {
                   <MultiSelect
                     options={transformedTags}
                     onValueChange={setSelectedTags}
-                    placeholder="Select up to 5 tags..."
-                    maxCount={5}
+                    placeholder="Select up to 3 tags..."
+                    maxCount={3}
                     value={selectedTags}
                   />
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  You can select up to 5 tags
+                  You can select up to 3 tags
                 </p>
                 {selectedTags.length === 0 && (
                   <p className="text-xs text-destructive mt-1">

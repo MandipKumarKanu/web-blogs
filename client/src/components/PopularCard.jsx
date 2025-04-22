@@ -38,7 +38,9 @@ const PopularCard = ({ post }) => {
           </Link>
           <div className="absolute top-4 left-4">
             <div className="bg-primary/80 rounded-full text-xs text-white px-4 py-1 shadow-md">
-              {post?.category?.[0]?.name || "Others"}
+              {post?.category?.[0].name ||
+                post?.categories?.[0].name ||
+                "Other"}
             </div>
           </div>
         </div>

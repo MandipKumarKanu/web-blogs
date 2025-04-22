@@ -8,7 +8,6 @@ const User = require("../models/User");
 // const { post } = require("../routes/notificationRoute");
 const levenshtein = require("fast-levenshtein");
 
-
 const createBlog = async (req, res) => {
   const { title, content, tags, category, image, scheduledPublishDate } =
     req.body;
@@ -17,7 +16,7 @@ const createBlog = async (req, res) => {
     if (!Array.isArray(tags) || tags.length === 0) {
       return res.status(400).json({ error: "Tags must be a non-empty array." });
     }
-    if (tags.length > 5) {
+    if (tags.length > 3) {
       return res
         .status(400)
         .json({ error: "You can select a maximum of 3 tags." });
@@ -28,10 +27,10 @@ const createBlog = async (req, res) => {
         .status(400)
         .json({ error: "Category must be a non-empty array." });
     }
-    if (category.length > 3) {
+    if (category.length > 1) {
       return res
         .status(400)
-        .json({ error: "You can select a maximum of 5 categories." });
+        .json({ error: "You can select a maximum of 1 categories." });
     }
 
     const styledContent = addCustomClassesToHtml(content);
@@ -251,6 +250,26 @@ const updateBlog = async (req, res) => {
         .json({ message: "You do not have permission to update this blog." });
     }
 
+    if (!Array.isArray(tags) || tags.length === 0) {
+      return res.status(400).json({ error: "Tags must be a non-empty array." });
+    }
+    if (tags.length > 3) {
+      return res
+        .status(400)
+        .json({ error: "You can select a maximum of 3 tags." });
+    }
+
+    if (!Array.isArray(category) || category.length === 0) {
+      return res
+        .status(400)
+        .json({ error: "Category must be a non-empty array." });
+    }
+    if (category.length > 1) {
+      return res
+        .status(400)
+        .json({ error: "You can select a maximum of 1 categories." });
+    }
+
     const updatedBlog = await Blog.findByIdAndUpdate(
       req.params.id,
       {
@@ -457,6 +476,9 @@ const getLatestBlogsByViews = async (req, res) => {
 };
 
 const getPopularBlog = async (req, res) => {
+  const { page = 1, limit = 10 } = req.query;
+  const skip = (page - 1) * limit;
+
   try {
     const threeDaysAgo = new Date();
     threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
@@ -473,7 +495,8 @@ const getPopularBlog = async (req, res) => {
       {
         $sort: { isRecent: -1, views: -1, publishedAt: -1 },
       },
-      { $limit: 20 },
+      { $skip: skip },
+      { $limit: parseInt(limit) },
       {
         $lookup: {
           from: "users",
@@ -484,10 +507,10 @@ const getPopularBlog = async (req, res) => {
       },
       {
         $lookup: {
-          from: "category",
+          from: "categories",
           localField: "category",
           foreignField: "_id",
-          as: "category",
+          as: "categories",
         },
       },
       {
@@ -510,7 +533,14 @@ const getPopularBlog = async (req, res) => {
       },
     ]);
 
-    res.status(200).json({ blogs });
+    const totalBlogs = await Blog.countDocuments({ status: "published" });
+    const totalPages = Math.ceil(totalBlogs / limit);
+
+    res.status(200).json({
+      blogs,
+      totalPages,
+      currentPage: parseInt(page),
+    });
   } catch (error) {
     console.error("Error fetching popular blogs:", error);
     res.status(500).json({ error });
@@ -816,14 +846,14 @@ const getContentBasedRecommendations = async (req, res) => {
       }
 
       recommendations = await Blog.find(query)
-        .limit(10)
+        .limit(12)
         .populate("author", "name")
         .populate("category", "name")
-        .populate("tags", "name");  
+        .populate("tags", "name");
     } else {
       recommendations = await Blog.aggregate([
         { $match: { status: "published" } },
-        { $sample: { size: 9 } },
+        { $sample: { size: 11 } },
         {
           $lookup: {
             from: "users",

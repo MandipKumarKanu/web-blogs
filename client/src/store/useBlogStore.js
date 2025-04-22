@@ -39,9 +39,10 @@ export const useBlogStore = create((set) => ({
   getAllPopular: async (pg, limit) => {
     set({ loading: true, error: null });
     try {
-      const response = await getPopularBlogs();
-      const { blogs } = response.data;
-      set({ loading: false, blogs, error: null });
+      const response = await getPopularBlogs({ pg, limit });
+      const { blogs, currentPage, totalPages } = response.data;
+      set({ loading: false, blogs, totalPages, currentPage, error: null });
+      return blogs;
     } catch (error) {
       set({ error: getErrorMessage(error), loading: false });
     }

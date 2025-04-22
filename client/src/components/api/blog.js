@@ -33,8 +33,8 @@ export async function getLatestBlogsByViews() {
   return axios.get(`${baseURL}/${url}`);
 }
 
-export async function getPopularBlogs() {
-  const url = `blogs/popular`;
+export async function getPopularBlogs(data) {
+  const url = `blogs/popular?page=${data.pg}&limit=${data.limit}`;
   return axios.get(`${baseURL}/${url}`);
 }
 

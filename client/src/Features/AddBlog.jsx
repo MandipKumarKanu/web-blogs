@@ -1,8 +1,23 @@
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { format } from "date-fns";
-import { ImageIcon, Tags, Upload, Users2, X, ArrowLeft, ArrowRight, Check } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import {
+  ImageIcon,
+  Tags,
+  Upload,
+  Users2,
+  X,
+  ArrowLeft,
+  ArrowRight,
+  Check,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -105,9 +120,9 @@ const BlogForm = () => {
     {
       title: "Categories & Publishing",
       description: "Add tags and set publishing options",
-      isComplete: () => 
-        selectedCategories.length > 0 && 
-        selectedTags.length > 0 && 
+      isComplete: () =>
+        selectedCategories.length > 0 &&
+        selectedTags.length > 0 &&
         (status !== "scheduled" || form.watch("scheduledPublishDate")),
     },
   ];
@@ -239,7 +254,7 @@ const BlogForm = () => {
       <div className="flex items-center justify-center mb-8">
         {steps.map((step, index) => (
           <React.Fragment key={index}>
-            <div 
+            <div
               className={`flex flex-col items-center ${
                 index + 1 === currentStep
                   ? "text-primary"
@@ -248,7 +263,7 @@ const BlogForm = () => {
                   : "text-muted-foreground"
               }`}
             >
-              <div 
+              <div
                 className={`w-10 h-10 rounded-full flex items-center justify-center border-2 ${
                   index + 1 === currentStep
                     ? "border-primary bg-primary/10"
@@ -264,10 +279,12 @@ const BlogForm = () => {
                 )}
               </div>
               <div className="text-xs mt-2 font-medium">{step.title}</div>
-              <div className="text-xs max-w-[100px] text-center">{step.description}</div>
+              <div className="text-xs max-w-[100px] text-center">
+                {step.description}
+              </div>
             </div>
             {index < steps.length - 1 && (
-              <div 
+              <div
                 className={`w-12 h-0.5 mx-1 ${
                   index + 1 < currentStep ? "bg-green-500" : "bg-muted"
                 }`}
@@ -346,9 +363,7 @@ const BlogForm = () => {
                     <Button
                       type="button"
                       variant="secondary"
-                      onClick={() =>
-                        document.getElementById("image").click()
-                      }
+                      onClick={() => document.getElementById("image").click()}
                       size="sm"
                       className="px-6"
                     >
@@ -358,9 +373,7 @@ const BlogForm = () => {
                   </div>
                 )}
               </div>
-              <FormMessage>
-                {form.formState.errors.image?.message}
-              </FormMessage>
+              <FormMessage>{form.formState.errors.image?.message}</FormMessage>
               <p className="text-xs text-muted-foreground mt-2">
                 Accepted formats: JPG, PNG, WebP. Max size: 5MB
               </p>
@@ -388,13 +401,13 @@ const BlogForm = () => {
           <>
             <div className="grid grid-cols-1 gap-6">
               <div>
-                <FormLabel>Categories</FormLabel>
+                <FormLabel>Category</FormLabel>
                 <div className="mt-2">
                   <MultiSelect
                     options={transformedCategories}
                     onValueChange={setSelectedCategories}
-                    placeholder="Select up to 3 categories..."
-                    maxCount={3}
+                    placeholder="Select a category."
+                    maxCount={1}
                     value={selectedCategories}
                   />
                 </div>
@@ -414,13 +427,13 @@ const BlogForm = () => {
                   <MultiSelect
                     options={transformedTags}
                     onValueChange={setSelectedTags}
-                    placeholder="Select up to 5 tags..."
-                    maxCount={5}
+                    placeholder="Select up to 3 tags..."
+                    maxCount={3}
                     value={selectedTags}
                   />
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  You can select up to 5 tags
+                  You can select up to 3 tags
                 </p>
                 {selectedTags.length === 0 && (
                   <p className="text-xs text-destructive mt-1">
@@ -503,10 +516,10 @@ const BlogForm = () => {
   };
 
   const isLastStep = currentStep === totalSteps;
-  const canSubmit = 
-    isLastStep && 
-    selectedCategories.length > 0 && 
-    selectedTags.length > 0 && 
+  const canSubmit =
+    isLastStep &&
+    selectedCategories.length > 0 &&
+    selectedTags.length > 0 &&
     (status !== "scheduled" || form.watch("scheduledPublishDate"));
 
   return (
@@ -517,9 +530,9 @@ const BlogForm = () => {
             Create Blog Post
           </CardTitle>
         </CardHeader>
-        
+
         {renderStepIndicator()}
-        
+
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -527,7 +540,7 @@ const BlogForm = () => {
             </form>
           </Form>
         </CardContent>
-        
+
         <CardFooter className="flex justify-between border-t pt-4">
           <Button
             type="button"
@@ -538,11 +551,11 @@ const BlogForm = () => {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Previous
           </Button>
-          
+
           {isLastStep ? (
-            <Button 
-              type="button" 
-              onClick={form.handleSubmit(onSubmit)} 
+            <Button
+              type="button"
+              onClick={form.handleSubmit(onSubmit)}
               disabled={!canSubmit || isSubmitting}
               className="w-32"
             >

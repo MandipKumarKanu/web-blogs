@@ -1,83 +1,52 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import InfiniteScroll from "react-infinite-scroll-component";
 import PopularCard from "@/components/PopularCard";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useBlogStore } from "@/store/useBlogStore";
 import { ArrowRight } from "lucide-react";
 
+const PAGE_SIZE = 15;
+
 const NewBlog = () => {
   const { getAllBlogs, loading, error, totalPages } = useBlogStore();
   const [currentPage, setCurrentPage] = useState(1);
   const [blogs, setBlogs] = useState([]);
-  const lastScrollY = useRef(0);
-  const scrollThreshold = 300; 
-  const observerRef = useRef(null);
-  const loadingRef = useRef(null);
+  const [hasMore, setHasMore] = useState(true);
 
-  const loadMore = useCallback(() => {
-    if (!loading && currentPage < totalPages) {
-      setCurrentPage((prev) => prev + 1);
-    }
-  }, [loading, currentPage, totalPages]);
+  const fetchMoreData = async () => {
+    if (!hasMore) return;
 
-  const handleScroll = useCallback(() => {
-    const currentScrollY = window.scrollY;
-    const scrolledDistance = currentScrollY - lastScrollY.current;
-    if (scrolledDistance > scrollThreshold) {
-      lastScrollY.current = currentScrollY;
-      loadMore();
+    try {
+      const nextPage = currentPage + 1;
+      const newBlogs = await getAllBlogs(nextPage, PAGE_SIZE);
+
+      if (!newBlogs || newBlogs.length === 0 || nextPage >= totalPages) {
+        setHasMore(false);
+        return;
+      }
+
+      setBlogs((prev) => [...prev, ...newBlogs]);
+      setCurrentPage(nextPage);
+    } catch (err) {
+      console.error("Error fetching more blogs:", err);
     }
-  }, [loadMore]);
+  };
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          loadMore();
-        }
-      },
-      {
-        root: null,
-        rootMargin: "20px",
-        threshold: 0.1,
-      }
-    );
-    observerRef.current = observer;
-
-    if (loadingRef.current) {
-      observer.observe(loadingRef.current);
-    }
-    window.addEventListener("scroll", handleScroll);
-
-    return () => {
-      if (observerRef.current && loadingRef.current) {
-        observerRef.current.unobserve(loadingRef.current);
-      }
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, [loadMore, handleScroll]);
-
-  useEffect(() => {
-    const fetchBlogs = async () => {
+    const loadInitialBlogs = async () => {
       try {
-        const pageSize = currentPage === 1 ? 25 : 15;
-        const newBlogs = await getAllBlogs(currentPage, pageSize);
-
-        if (currentPage === 1) {
-          setBlogs(newBlogs); 
-        } else {
-          setBlogs((prevBlogs) => {
-            const updatedBlogs = [...prevBlogs.slice(10), ...newBlogs];
-            return updatedBlogs;
-          });
+        const initialBlogs = await getAllBlogs(1, PAGE_SIZE);
+        setBlogs(initialBlogs);
+        if (1 >= totalPages || !initialBlogs || initialBlogs.length === 0) {
+          setHasMore(false);
         }
       } catch (err) {
-        console.error("Error fetching blogs:", err);
+        console.error("Error fetching initial blogs:", err);
       }
     };
-
-    fetchBlogs();
-  }, [currentPage, getAllBlogs]);
+    loadInitialBlogs();
+  }, [getAllBlogs, totalPages]);
 
   if (loading && blogs.length === 0) {
     return (
@@ -108,7 +77,7 @@ const NewBlog = () => {
     return (
       <div className="container mx-auto px-4 py-12 text-center">
         <div className="text-muted-foreground bg-muted/10 p-6 rounded-xl inline-block">
-          No popular blogs found.
+          No recent blogs found.
         </div>
       </div>
     );
@@ -130,19 +99,22 @@ const NewBlog = () => {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 gap-8">
-          {blogs.map((blog, index) => (
-            <PopularCard post={blog} key={`${blog._id}-${index}`} />
-          ))}
-        </div>
-
-        <div ref={loadingRef} className="mt-8">
-          {loading && (
+        <InfiniteScroll
+          dataLength={blogs.length}
+          next={fetchMoreData}
+          hasMore={hasMore}
+          loader={
             <div className="flex justify-center p-8">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
             </div>
-          )}
-        </div>
+          }
+        >
+          <div className="grid grid-cols-1 gap-8">
+            {blogs.map((blog, index) => (
+              <PopularCard post={blog} key={`${blog._id}-${index}`} />
+            ))}
+          </div>
+        </InfiniteScroll>
       </div>
     </section>
   );
