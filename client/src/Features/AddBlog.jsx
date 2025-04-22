@@ -412,11 +412,11 @@ const BlogForm = () => {
                   />
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  You can select up to 3 categories
+                  You can select only one categories
                 </p>
                 {selectedCategories.length === 0 && (
                   <p className="text-xs text-destructive mt-1">
-                    Please select at least one category
+                    Please select a category
                   </p>
                 )}
               </div>
