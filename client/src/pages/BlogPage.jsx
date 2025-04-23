@@ -10,7 +10,7 @@ import { FaHeart, FaRegHeart } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import DOMPurify from "dompurify";
 import parse from "html-react-parser";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   getBlogById,
   incShare,
@@ -82,7 +82,7 @@ export default function BlogPage() {
   const [isLiked, setIsLiked] = useState(false);
   const [likeLoading, setLikeLoading] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
-  const [commentCount, setCommentCount] = useState(0);
+  const [commentCount, setCommentCount] = useState();
   const [hoveredImg, setHoveredImg] = useState(null);
   const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
 
@@ -208,8 +208,8 @@ export default function BlogPage() {
       const response = await getBlogById(id);
       const fetchedBlog = response.data.blog;
       setBlog(fetchedBlog);
-      usePageStayTimer(fetchedBlog.tags);
-
+      // usePageStayTimer(fetchedBlog.tags);
+      // console.log(fetchedBlog.comments.length);
       setCommentCount(fetchedBlog.comments.length || 0);
     } catch (error) {
       setError(getErrorMessage(error));
@@ -488,11 +488,20 @@ export default function BlogPage() {
                 <span className="block text-foreground">{blog.views}</span>
               </div>
               <div>
-                <span className="block text-xs text-muted-foreground uppercase">
+                <span className="block text-xs text-muted-foreground uppercase ">
                   Author
                 </span>
                 <span className="block text-foreground">
-                  {blog.author?.name || "Unknown"}
+                  <Link
+                    to={
+                      user && blog.author?._id === user.id
+                        ? "/profile"
+                        : `/profile/${blog.author?._id}`
+                    }
+                    className="block text-foreground hover:underline hover:text-primary transition-all duration-300"
+                  >
+                    {blog.author?.name || "Unknown"}
+                  </Link>
                 </span>
               </div>
             </div>
@@ -529,13 +538,14 @@ export default function BlogPage() {
           />
         </div>
       )}
-      {user && <RecommendedBlog />}
+      {user && <RecommendedBlog cat={blog?.category?.[0]?._id} />}
 
       <CommentsDialog
         blogId={id}
         isOpen={commentsOpen}
         onClose={() => setCommentsOpen(false)}
         incrementComment={incrementComment}
+        blogAuthorId={blog?.author?._id || ""} // Add fallback empty string
       />
     </div>
   );

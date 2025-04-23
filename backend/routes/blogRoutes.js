@@ -41,7 +41,8 @@ router.get("/popular", getPopularBlog);
 router.get("/search", searchBlogs);
 router.get("/searchByQuery", searchBlogByQuery);
 router.post(
-  "/recommendation-content", userMiddleware,
+  "/recommendation-content",
+  userMiddleware,
   getContentBasedRecommendations
 );
 router.get("/filter", getByCategory);
@@ -52,7 +53,7 @@ router.get(
   getAllBlogsForAdmin
 );
 router.get("/popularmonth", getPopularBlogsOfMonth);
-router.get("/recommended", authMiddleware, getRecommendedBlogs);
+router.get("/recommended/:id", userMiddleware, getRecommendedBlogs);
 router.get(
   "/unapproved",
   authMiddleware,

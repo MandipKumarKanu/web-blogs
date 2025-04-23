@@ -18,6 +18,8 @@ import {
   updateComment,
   deleteComment,
 } from "./api/comment";
+import { Link } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
 
 const fetchComments = async (blogId) => {
   try {
@@ -123,6 +125,7 @@ const CommentItem = ({
   isReply = false,
   parentInfo = null,
   groupedComments,
+  blogAuthorId,
 }) => {
   const { user } = useAuthStore();
   const [showReplyInput, setShowReplyInput] = useState(false);
@@ -148,22 +151,48 @@ const CommentItem = ({
     <div>
       <div className={`${containerClass} space-y-2`}>
         <div className="flex items-start gap-3">
-          <Avatar className="h-8 w-8">
-            <AvatarImage
-              src={comment.author?.profileImage}
-              className="object-cover"
-            />
-            <AvatarFallback>{comment.author?.name?.charAt(0)}</AvatarFallback>
-          </Avatar>
+          <Link
+            to={
+              user && comment.author?._id === user.id
+                ? "/profile"
+                : `/profile/${comment.author?._id}`
+            }
+            className="block text-foreground hover:underline hover:text-primary transition-all duration-300"
+          >
+            <Avatar className="h-8 w-8">
+              <AvatarImage
+                src={comment.author?.profileImage}
+                className="object-cover"
+              />
+              <AvatarFallback>{comment.author?.name?.charAt(0)}</AvatarFallback>
+            </Avatar>
+          </Link>
           <div className="flex-1">
             <div className="bg-muted p-3 rounded-lg">
               <div className="flex items-center gap-2 mb-1">
-                <p className="font-semibold text-sm">
-                  {comment.author?.name}&nbsp;
-                  <span className="text-xs text-muted-foreground">
-                    ({comment?.author?.userName})
-                  </span>
-                </p>
+                <Link
+                  to={
+                    user && comment.author?._id === user.id
+                      ? "/profile"
+                      : `/profile/${comment.author?._id}`
+                  }
+                  className="block text-foreground hover:underline transition-all duration-300"
+                >
+                  <p className="font-semibold text-sm flex items-center gap-2">
+                    {comment.author?.name}
+                    <span className="text-xs text-muted-foreground">
+                      ({comment?.author?.userName})
+                      {blogAuthorId && comment.author?._id === blogAuthorId && (
+                        <Badge
+                          variant="outline"
+                          className="ml-2 px-2 py-0.5 text-xs font-semibold bg-primary/10 text-primary border-primary/20"
+                        >
+                          Author
+                        </Badge>
+                      )}
+                    </span>
+                  </p>
+                </Link>
                 {isReply && parentInfo && (
                   <span className="text-xs text-muted-foreground">
                     replying to {parentInfo.author?.userName}
@@ -260,6 +289,7 @@ const CommentItem = ({
                 isReply={true}
                 parentInfo={comment}
                 groupedComments={groupedComments}
+                blogAuthorId={blogAuthorId}
               />
             ))}
         </div>
@@ -268,7 +298,14 @@ const CommentItem = ({
   );
 };
 
-const CommentsDialog = ({ blogId, isOpen, onClose, incrementComment }) => {
+const CommentsDialog = ({
+  blogId,
+  isOpen,
+  onClose,
+  incrementComment,
+  blogAuthorId,
+}) => {
+  console.log(blogAuthorId, "blogAuthorId");
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [commenting, setCommenting] = useState(false);
@@ -361,6 +398,7 @@ const CommentsDialog = ({ blogId, isOpen, onClose, incrementComment }) => {
                     onDelete={handleDeleteComment}
                     isReply={false}
                     groupedComments={groupedComments}
+                    blogAuthorId={blogAuthorId}
                   />
                 ))
             )}

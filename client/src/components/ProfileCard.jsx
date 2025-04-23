@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const ProfileCard = ({ user, onUpdateProfile, onUpdatePassword }) => {
+const ProfileCard = ({ user, onUpdateProfile, onUpdatePassword,pId }) => {
   return (
     <Card className="mb-8 mx-auto max-w-4xl">
       <CardContent className="pt-6 relative">
@@ -32,27 +32,30 @@ const ProfileCard = ({ user, onUpdateProfile, onUpdatePassword }) => {
               <p className="text-muted-foreground">{user?.email}</p>
             </div>
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 sm:relative sm:top-0 sm:right-0 absolute top-2 right-2"
-              >
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-48">
-              <DropdownMenuItem onClick={onUpdateProfile}>
-                <Pencil className="mr-2 h-4 w-4" />
-                Update Profile
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={onUpdatePassword}>
-                <Key className="mr-2 h-4 w-4" />
-                Change Password
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+
+          {!pId && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 sm:relative sm:top-0 sm:right-0 absolute top-2 right-2"
+                >
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-48">
+                <DropdownMenuItem onClick={onUpdateProfile}>
+                  <Pencil className="mr-2 h-4 w-4" />
+                  Update Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={onUpdatePassword}>
+                  <Key className="mr-2 h-4 w-4" />
+                  Change Password
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </CardContent>
     </Card>

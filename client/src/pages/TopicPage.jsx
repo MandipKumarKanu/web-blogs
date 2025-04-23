@@ -16,6 +16,90 @@ import { getByCategoryGrp } from "@/components/api/blog";
 import { Link } from "react-router-dom";
 import useCategoryTagStore from "@/store/useCategoryTagStore";
 
+// Featured Blog Card Skeleton
+const FeaturedBlogCardSkeleton = () => (
+  <Card className="h-full border-0 overflow-hidden bg-gradient-to-br from-primary/5 to-background shadow-xl rounded-xl">
+    <div className="flex flex-col h-full">
+      <CardHeader className="pb-2 pt-6">
+        <Skeleton className="h-6 w-24 mb-3 rounded-full" />
+        <Skeleton className="h-9 w-full mb-2" />
+        <Skeleton className="h-9 w-4/5" />
+      </CardHeader>
+      <CardContent className="flex-grow">
+        <div className="mb-4">
+          <Skeleton className="h-5 w-full mb-2" />
+          <Skeleton className="h-5 w-full mb-2" />
+          <Skeleton className="h-5 w-full mb-2" />
+          <Skeleton className="h-5 w-full mb-2" />
+          <Skeleton className="h-5 w-4/5" />
+        </div>
+        <div className="flex items-center gap-4">
+          <Skeleton className="h-8 w-8 rounded-full" />
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-4 w-4 rounded-full" />
+            <Skeleton className="h-4 w-20" />
+          </div>
+        </div>
+      </CardContent>
+      <CardFooter>
+        <Skeleton className="h-6 w-32" />
+      </CardFooter>
+    </div>
+  </Card>
+);
+
+// Regular Blog Card Skeleton
+const RegularBlogCardSkeleton = () => (
+  <Card className="h-full border border-border/30 bg-card shadow-md rounded-lg overflow-hidden">
+    <CardHeader className="pb-2">
+      <Skeleton className="h-6 w-full mb-1" />
+      <Skeleton className="h-6 w-4/5" />
+    </CardHeader>
+    <CardContent>
+      <div className="mb-3">
+        <Skeleton className="h-4 w-full mb-1" />
+        <Skeleton className="h-4 w-full mb-1" />
+        <Skeleton className="h-4 w-3/4" />
+      </div>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1">
+          <Skeleton className="h-3 w-3 rounded-full" />
+          <Skeleton className="h-3 w-16" />
+        </div>
+        <Skeleton className="h-3 w-3 rounded-full" />
+      </div>
+    </CardContent>
+  </Card>
+);
+
+// Category Section Skeleton
+const CategorySectionSkeleton = ({ index }) => (
+  <div className={index > 0 ? "mt-24" : ""}>
+    <div className="flex justify-between items-center mb-8">
+      <div>
+        <Skeleton className="h-10 w-64 rounded-lg mb-2" />
+        <Skeleton className="h-5 w-48" />
+      </div>
+      <Skeleton className="h-10 w-32 rounded-full" />
+    </div>
+
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+      <div className="lg:col-span-1">
+        <FeaturedBlogCardSkeleton />
+      </div>
+      <div className="lg:col-span-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <RegularBlogCardSkeleton key={i} />
+          ))}
+        </div>
+      </div>
+    </div>
+
+    {index < 1 && <Separator className="mt-16 opacity-30" />}
+  </div>
+);
+
 const TopicPage = () => {
   const {
     categories,
@@ -142,27 +226,14 @@ const TopicPage = () => {
 
   if (loading || categoryLoading) {
     return (
-      <div className="container mx-auto px-4 py-12">
-        <div className="mb-8">
-          <Skeleton className="h-12 w-64 rounded-lg mb-6" />
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <Skeleton className="h-80 rounded-xl bg-muted col-span-1 lg:col-span-1" />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 col-span-1 lg:col-span-2">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <Skeleton key={i} className="h-40 rounded-lg bg-muted" />
-              ))}
-            </div>
-          </div>
+      <section className="py-16 bg-background">
+        <div className="container mx-auto px-4">
+          {/* Show multiple category sections in skeleton state */}
+          {Array.from({ length: 2 }).map((_, index) => (
+            <CategorySectionSkeleton key={index} index={index} />
+          ))}
         </div>
-        <div className="mt-16">
-          <Skeleton className="h-12 w-64 rounded-lg mb-6" />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <Skeleton key={i} className="h-64 rounded-lg bg-muted" />
-            ))}
-          </div>
-        </div>
-      </div>
+      </section>
     );
   }
 

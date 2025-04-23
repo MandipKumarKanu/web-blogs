@@ -82,6 +82,8 @@ const UsersPage = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
+  const [userDetails, setUserDetails] = useState(null);
+  const [isUserDialogOpen, setIsUserDialogOpen] = useState(false);
 
   const fetchUsers = async (page = 1) => {
     setLoading(true);
@@ -187,7 +189,11 @@ const UsersPage = () => {
                 {users.map((user) => (
                   <div
                     key={user._id}
-                    className="flex items-center justify-between p-4 border rounded-lg"
+                    className="flex items-center justify-between p-4 border rounded-lg hover:shadow cursor-pointer transition"
+                    onClick={() => {
+                      setUserDetails(user);
+                      setIsUserDialogOpen(true);
+                    }}
                   >
                     <div className="flex items-center space-x-4">
                       <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -223,7 +229,8 @@ const UsersPage = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setSelectedUserId(user._id);
                           setIsResetDialogOpen(true);
                         }}
@@ -276,6 +283,59 @@ const UsersPage = () => {
                 userId={selectedUserId}
                 onClose={() => setIsResetDialogOpen(false)}
               />
+            )}
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={isUserDialogOpen} onOpenChange={setIsUserDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>User Details</DialogTitle>
+            </DialogHeader>
+            {userDetails && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <img
+                    src={
+                      userDetails.profileImage ||
+                      "https://ui-avatars.com/api/?name=" +
+                        encodeURIComponent(userDetails.name)
+                    }
+                    alt={userDetails.name}
+                    className="w-16 h-16 rounded-full border object-cover"
+                  />
+                  <div>
+                    <p className="text-lg font-semibold">{userDetails.name}</p>
+                    <p className="text-muted-foreground">
+                      @{userDetails.userName}
+                    </p>
+                    <p className="text-muted-foreground">{userDetails.email}</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="block text-xs text-muted-foreground uppercase">
+                      Role
+                    </span>
+                    <span className="block">{userDetails.role}</span>
+                  </div>
+                  <div>
+                    <span className="block text-xs text-muted-foreground uppercase">
+                      Created
+                    </span>
+                    <span className="block">
+                      {new Date(userDetails.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="block text-xs text-muted-foreground uppercase">
+                      User ID
+                    </span>
+                    <span className="block">#{userDetails._id.slice(-6)}</span>
+                  </div>
+                </div>
+              </div>
             )}
           </DialogContent>
         </Dialog>

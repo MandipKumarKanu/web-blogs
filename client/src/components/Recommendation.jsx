@@ -116,7 +116,7 @@ const Recommendation = () => {
     <section className="w-full py-12 md:py-24 bg-gradient-to-br from-background via-background to-muted/10">
       <div className="container mx-auto px-4">
         <div className="max-w-2xl mx-auto mb-6 text-center flex flex-col items-center">
-          <h2 className="text-3xl md:text-5xl font-bold mb-6 italic">
+          <h2 className="text-3xl md:text-5xl font-bold mb-6 ">
             Recommended for You
           </h2>
           <p className="text-muted-foreground ">

@@ -53,8 +53,8 @@ export async function popMonth() {
   return axios.get(`${baseURL}/${url}`);
 }
 
-export async function getRecommended() {
-  const url = `blogs/recommended/`;
+export async function getRecommended(id) {
+  const url = `blogs/recommended/${id}`;
   return customAxios.get(`${url}`);
 }
 
@@ -75,8 +75,8 @@ export async function incShare(id) {
   return axios.patch(`${baseURL}/${url}`);
 }
 
-export async function getByCategory(ct) {
-  const url = `blogs/filter?category=${ct}`;
+export async function getByCategory(categoryId, page = 1, limit = 15) {
+  const url = `blogs/filter?category=${categoryId}&page=${page}&limit=${limit}`;
   return axios.get(`${baseURL}/${url}`);
 }
 

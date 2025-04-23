@@ -52,7 +52,7 @@ const Category = () => {
   return (
     <section className="container mx-auto py-12 px-6">
       <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-        <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-center md:text-left">
+        <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-center md:text-left ">
           Discover the World of Blogs
         </h2>
         <Button

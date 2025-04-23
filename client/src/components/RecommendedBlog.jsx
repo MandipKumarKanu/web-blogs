@@ -56,7 +56,7 @@ const BlogCard = ({ blog }) => {
   );
 };
 
-const RecommendedBlog = () => {
+const RecommendedBlog = ({ cat }) => {
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -64,8 +64,8 @@ const RecommendedBlog = () => {
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
-        const response = await getRecommended();
-        setBlogs(response.data.blog);
+        const response = await getRecommended(cat);
+        setBlogs(response.data.blogs);
         setLoading(false);
       } catch (err) {
         setError(err.message);
@@ -115,9 +115,7 @@ const RecommendedBlog = () => {
         Similar News
       </h1>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {blogs.slice(0, 3).map((blog) => (
-          <BlogCard key={blog._id} blog={blog} />
-        ))}
+        {blogs && blogs.map((blog) => <BlogCard key={blog._id} blog={blog} />)}
       </div>
     </div>
   );

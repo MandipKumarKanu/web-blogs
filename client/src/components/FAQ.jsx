@@ -23,7 +23,7 @@ const faqData = [
       "Engage with your favorite posts by clicking the like button and leaving comments. Your interactions help build a vibrant community and influence future recommendations.",
   },
   {
-    question: "What is AI summarization with Gemini API?",
+    question: "What is AI summarization?",
     answer:
       "For quick insights, our blog app leverages the Gemini API to provide AI-powered summaries of posts. Just click the summary option to see a concise overview of any blog article.",
   },
@@ -48,20 +48,21 @@ const FAQPage = () => {
           </p>
         </header>
         <Accordion type="single" collapsible className="space-y-4">
-          {faqData&&faqData.map((faq, index) => (
-            <AccordionItem
-              key={index}
-              value={`faq-${index}`}
-              className="border border-muted rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
-            >
-              <AccordionTrigger className="flex justify-between items-center px-6 py-4 bg-primary text-white font-semibold text-left hover:bg-primary/80 transition-colors">
-                {faq.question}
-              </AccordionTrigger>
-              <AccordionContent className="px-6 py-5 bg-background text-foreground">
-                <p className="text-base leading-relaxed">{faq.answer}</p>
-              </AccordionContent>
-            </AccordionItem>
-          ))}
+          {faqData &&
+            faqData.map((faq, index) => (
+              <AccordionItem
+                key={index}
+                value={`faq-${index}`}
+                className="border border-muted rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+              >
+                <AccordionTrigger className="flex justify-between items-center px-6 py-4 bg-primary text-white font-semibold text-left hover:bg-primary/80 transition-colors">
+                  {faq.question}
+                </AccordionTrigger>
+                <AccordionContent className="px-6 py-5 bg-background text-foreground">
+                  <p className="text-base leading-relaxed">{faq.answer}</p>
+                </AccordionContent>
+              </AccordionItem>
+            ))}
         </Accordion>
       </div>
     </section>

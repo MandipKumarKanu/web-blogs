@@ -333,7 +333,10 @@ const searchBlogs = async (req, res, next) => {
   const tagsArray = tags.split(",").map((tag) => tag.trim());
 
   try {
-    const blogs = await Blog.find({ tags: { $in: tagsArray }, status: "published" }) // Add status filter
+    const blogs = await Blog.find({
+      tags: { $in: tagsArray },
+      status: "published",
+    }) // Add status filter
       .populate("author", "name profileImage")
       .populate("category", "name");
     res.status(200).json({ blogs });
@@ -343,7 +346,8 @@ const searchBlogs = async (req, res, next) => {
 };
 
 const getByCategory = async (req, res, next) => {
-  const { category } = req.query;
+  const { category, page = 1, limit = 10 } = req.query;
+  const skip = (page - 1) * limit;
 
   if (!category)
     return res
@@ -351,19 +355,29 @@ const getByCategory = async (req, res, next) => {
       .json({ error: "Please provide category for search" });
 
   try {
-    let blogs;
+    let blogs, totalBlogs, totalPages;
     if (category === "All") {
       blogs = await Blog.find({ status: "published" })
         .populate("author", "name profileImage")
         .populate("category", "name")
-        .populate("comments");
+        .populate("comments")
+        .sort({ publishedAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit));
+      totalBlogs = await Blog.countDocuments({ status: "published" });
     } else {
       blogs = await Blog.find({ category: category, status: "published" })
         .populate("category", "name")
         .populate("author", "name profileImage")
-        .populate("comments");
+        .populate("comments")
+        .sort({ publishedAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit));
+      totalBlogs = await Blog.countDocuments({ category: category, status: "published" });
     }
-    res.status(200).json({ blogs });
+    totalPages = Math.ceil(totalBlogs / limit);
+
+    res.status(200).json({ blogs, totalPages, currentPage: parseInt(page) });
   } catch (error) {
     res.status(500).json({ error });
   }
@@ -712,7 +726,10 @@ const getBlogsByCategoryPage = async (req, res) => {
   }
 
   try {
-    const blogs = await Blog.find({ category: { $in: categories }, status: "published" }) 
+    const blogs = await Blog.find({
+      category: { $in: categories },
+      status: "published",
+    })
       .sort({ createdAt: -1 })
       .populate("author", "name userName email profileImage")
       .populate("likes", "name profileImage");
@@ -733,18 +750,25 @@ const getBlogsByCategoryPage = async (req, res) => {
 
 const getRecommendedBlogs = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-    const blog = await Blog.find({
-      tags: { $in: user.interests },
-      status: "published",
-    })
-      .sort({ likes: -1, createdAt: -1 })
-      .limit(5);
+    const id = req.params.id;
+    // const user = await Blog.findById(req.user?.id);
+    let blogs;
 
-    return res.status(200).json({ blog });
+    if (id) {
+      blogs = await Blog.find({
+        category: { $in: id },
+        status: "published",
+      })
+        .sort({ likes: -1, createdAt: -1 })
+        .limit(3);
+    } else {
+      blogs = await Blog.aggregate([
+        { $match: { status: "published" } },
+        { $sample: { size: 3 } },
+      ]);
+    }
+
+    return res.status(200).json({ blogs });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -834,11 +858,15 @@ const getContentBasedRecommendations = async (req, res) => {
     let recommendations = [];
 
     if (Array.isArray(interests) && interests.length > 0) {
-      const blogs = await Blog.find({
+      let query = {
         category: { $in: interests },
         status: "published",
-        // ...(userId && { likes: { $ne: userId } }),
-      })
+      };
+      if (userId) {
+        query.likes = { $ne: userId };
+      }
+
+      const blogs = await Blog.find(query)
         .sort({ createdAt: -1 })
         .populate("author", "name")
         .populate("category", "name")

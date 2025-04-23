@@ -30,11 +30,12 @@ import SearchComponent from "./SearchComponent";
 
 const Header = () => {
   const { theme, setTheme } = useTheme();
+
   const isDark = theme === "dark";
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
-  
+
   const { user, logout } = useAuthStore();
 
   const navItems = [
@@ -44,9 +45,9 @@ const Header = () => {
     { label: "Topics", path: "/topics" },
   ];
 
-  const handleLogout = async()=>{
+  const handleLogout = async () => {
     await logout(navigate);
-  }
+  };
 
   const NavLinks = ({ className = "", onClick = () => {} }) => (
     <>
@@ -78,12 +79,20 @@ const Header = () => {
     >
       <div className="relative h-5 w-5">
         <Sun
-          className={`absolute h-5 w-5 transform transition-all duration-500 
-            ${isDark ? "rotate-0 opacity-100" : "rotate-90 opacity-0"}`}
+          className={`absolute h-5 w-5 transition-all duration-500 
+            ${isDark
+              ? "rotate-90 scale-0 opacity-0"
+              : "rotate-0 scale-100 opacity-100"
+            }`}
+          style={{ transitionProperty: "transform, opacity" }}
         />
         <Moon
-          className={`absolute h-5 w-5 transform transition-all duration-500 
-            ${isDark ? "rotate-90 opacity-0" : "rotate-0 opacity-100"}`}
+          className={`absolute h-5 w-5 transition-all duration-500 
+            ${isDark
+              ? "rotate-0 scale-100 opacity-100"
+              : "-rotate-90 scale-0 opacity-0"
+            }`}
+          style={{ transitionProperty: "transform, opacity" }}
         />
       </div>
     </button>
@@ -159,7 +168,6 @@ const Header = () => {
         </div>
 
         <div className="flex md:hidden items-center gap-2">
-
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
               <button
@@ -224,9 +232,7 @@ const Header = () => {
                 />
               </nav>
               {user?.role === "admin" && (
-                <Link to="/admin/dashboard">
-                  Dashboard
-                </Link>
+                <Link to="/admin/dashboard">Dashboard</Link>
               )}
 
               {user && (

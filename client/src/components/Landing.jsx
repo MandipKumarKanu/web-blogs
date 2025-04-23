@@ -11,7 +11,6 @@ const Landing = () => {
     useBlogStore();
 
   useEffect(() => {
-    // console.log(weeklyPopularBlogs);
     if (weeklyPopularBlogs === 0) fetch();
   }, []);
 
@@ -24,7 +23,7 @@ const Landing = () => {
       <div className="container w-full h-full grid gap-8 lg:grid-cols-3 grid-cols-1">
         <div className="lg:col-span-2 col-span-1 w-full">
           <div className="text-4xl md:text-6xl font-bold mb-6 flex justify-between items-end">
-            <span className="italic ml-5">Best of the week</span>
+            <span className=" ml-5">Best of the week</span>
             <Button
               variant="ghost"
               className="text-muted-foreground hover:text-foreground flex items-center gap-2"
@@ -116,4 +115,3 @@ const Landing = () => {
 };
 
 export default Landing;
-  
