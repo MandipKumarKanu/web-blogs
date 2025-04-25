@@ -8,7 +8,11 @@ import {
 import { ThemeProvider } from "./components/context/theme-provider";
 import { Toaster } from "./components/ui/sonner";
 import { lazy, Suspense, useEffect, useState } from "react";
-import { baseURL, customAxios, setupInterceptors } from "./components/config/axios";
+import {
+  baseURL,
+  customAxios,
+  setupInterceptors,
+} from "./components/config/axios";
 import { useAuthStore } from "./store/useAuthStore";
 import { jwtDecode } from "jwt-decode";
 import useResetScrollPosition from "./hooks/useResetScrollPosition";
@@ -18,6 +22,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { useLocalStorage } from "./hooks/use-localStorage";
 import Loader from "./components/Loader";
 import AboutUs from "./components/AboutUs";
+import { TooltipProvider } from "./components/ui/tooltip";
 
 const Home = lazy(() => import("./components/Home"));
 const Header = lazy(() => import("./components/Header"));
@@ -104,63 +109,65 @@ const App = () => {
   return (
     <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
       <ErrorBoundary>
-        <Suspense fallback={<Loader />}>
-          {!isAdminRoute && <Header />}
-          <div className="min-h-[100dvh] relative">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/blogs" element={<AllBlog />} />
-              <Route path="/blog/:id" element={<BlogPage />} />
-              <Route path="/category/:category" element={<CategoryPage />} />
-              <Route path="/popular" element={<PopularBlog />} />
-              <Route path="/topics" element={<TopicPage />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/forget" element={<ForgotPassword />} />
-              <Route path="/new" element={<NewBlog />} />
-              <Route path="/faq" element={<FAQPage />} />
-              <Route path="/profile/:id" element={<ProfilePage />} />
-              <Route path="/about" element={<AboutUs />} />
+        <TooltipProvider>
+          <Suspense fallback={<Loader />}>
+            {!isAdminRoute && <Header />}
+            <div className="min-h-[100dvh] relative">
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/blogs" element={<AllBlog />} />
+                <Route path="/blog/:id" element={<BlogPage />} />
+                <Route path="/category/:category" element={<CategoryPage />} />
+                <Route path="/popular" element={<PopularBlog />} />
+                <Route path="/topics" element={<TopicPage />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/forget" element={<ForgotPassword />} />
+                <Route path="/new" element={<NewBlog />} />
+                <Route path="/faq" element={<FAQPage />} />
+                <Route path="/profile/:id" element={<ProfilePage />} />
+                <Route path="/about" element={<AboutUs />} />
 
-              <Route element={<ProtectedRoute />}>
-                <Route
-                  path="/admin/*"
-                  element={
-                    user?.role === "admin" ? (
-                      <Dashboard />
-                    ) : (
-                      <Navigate to="/" replace />
-                    )
-                  }
-                />
-                <Route path="/profile" element={<ProfilePage />} />
-                <Route path="/add" element={<Add />} />
-                <Route path="/allblogs" element={<ApproveBlog />} />
-                <Route
-                  path="/edit/:blogId"
-                  element={
-                    <Suspense fallback={<div>Loading editor...</div>}>
-                      <EditBlog />
-                    </Suspense>
-                  }
-                />
-              </Route>
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+                <Route element={<ProtectedRoute />}>
+                  <Route
+                    path="/admin/*"
+                    element={
+                      user?.role === "admin" ? (
+                        <Dashboard />
+                      ) : (
+                        <Navigate to="/" replace />
+                      )
+                    }
+                  />
+                  <Route path="/profile" element={<ProfilePage />} />
+                  <Route path="/add" element={<Add />} />
+                  <Route path="/allblogs" element={<ApproveBlog />} />
+                  <Route
+                    path="/edit/:blogId"
+                    element={
+                      <Suspense fallback={<div>Loading editor...</div>}>
+                        <EditBlog />
+                      </Suspense>
+                    }
+                  />
+                </Route>
+                <Route path="*" element={<NotFound />} />
+              </Routes>
 
-            {canAddBlog && (
-              <button
-                onClick={() => navigate("/add")}
-                title="Add Blog"
-                className="fixed bottom-8 right-8 bg-primary text-white p-4 rounded-full shadow-lg hover:bg-primary-dark transition"
-              >
-                <Plus className="h-6 w-6" />
-              </button>
-            )}
-          </div>
-          {!isAdminRoute && <Footer />}
-        </Suspense>
-        <Toaster richColors />
+              {canAddBlog && (
+                <button
+                  onClick={() => navigate("/add")}
+                  title="Add Blog"
+                  className="fixed bottom-8 right-8 bg-primary text-white p-4 rounded-full shadow-lg hover:bg-primary-dark transition"
+                >
+                  <Plus className="h-6 w-6" />
+                </button>
+              )}
+            </div>
+            {!isAdminRoute && <Footer />}
+          </Suspense>
+          <Toaster richColors />
+        </TooltipProvider>
       </ErrorBoundary>
     </ThemeProvider>
   );

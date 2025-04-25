@@ -56,7 +56,7 @@ const BlogCard = ({ blog }) => {
   );
 };
 
-const RecommendedBlog = ({ cat }) => {
+const RecommendedBlog = ({ cat, bId }) => {
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -64,7 +64,7 @@ const RecommendedBlog = ({ cat }) => {
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
-        const response = await getRecommended(cat);
+        const response = await getRecommended(cat, bId);
         setBlogs(response.data.blogs);
         setLoading(false);
       } catch (err) {

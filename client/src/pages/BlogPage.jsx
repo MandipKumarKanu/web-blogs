@@ -538,7 +538,7 @@ export default function BlogPage() {
           />
         </div>
       )}
-      {user && <RecommendedBlog cat={blog?.category?.[0]?._id} />}
+      {user && <RecommendedBlog cat={blog?.category?.[0]?._id} bId={id}/>}
 
       <CommentsDialog
         blogId={id}

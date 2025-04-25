@@ -53,9 +53,9 @@ export async function popMonth() {
   return axios.get(`${baseURL}/${url}`);
 }
 
-export async function getRecommended(id) {
+export async function getRecommended(id, bId) {
   const url = `blogs/recommended/${id}`;
-  return customAxios.get(`${url}`);
+  return customAxios.post(`${url}`, { bId });
 }
 
 export async function likeBlog(id, status = undefined) {
