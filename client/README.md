@@ -279,12 +279,17 @@ export const useAuthStore = create((set) => ({
 
 ## 🚦 CI/CD Pipeline
 
-Configured via **.github/workflows/ci.yml**:
+We use GitHub Actions for Continuous Integration and Continuous Deployment (CI/CD). Here's the workflow:
 
-1. 📥 Checkout code
-2. 📦 Install dependencies
-3. 🏗️ Build client
-4. 🚀 Deploy on merge to `main`
+1. **Code Checkout**: Every push to the `main` branch triggers the pipeline.
+2. **Install Dependencies**: We automatically install both frontend and backend dependencies.
+3. **Build React Client**: The client is built with Vite and prepared for deployment.
+4. **Run Tests**: Unit and integration tests run to ensure no breaking changes.
+5. **Deploy**: 
+   - **Frontend** is deployed to Vercel.
+   - **Backend** is deployed to Vercel, where it connects to the MongoDB Cluster URI.
+   
+All deployments happen automatically upon successful merging of pull requests into `main`.
 
 ---
 
