@@ -4,14 +4,16 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useBlogStore } from "@/store/useBlogStore";
 import { Link } from "react-router-dom";
+import useCategoryTagStore from "@/store/useCategoryTagStore";
 
 const Footer = () => {
   const { weekError, weekLoad, weeklyPopularBlogs, getWeeklyPop } =
     useBlogStore();
 
+  const { categories } = useCategoryTagStore();
+
   useEffect(() => {
     if (weeklyPopularBlogs.length === 0) fetch();
-    // console.log(weeklyPopularBlogs);
   }, []);
 
   const fetch = async () => {
@@ -26,49 +28,23 @@ const Footer = () => {
               Categories
             </h3>
             <ul className="space-y-2">
-              <li>
-                <a
-                  href="/tech"
-                  className="hover:text-primary transition-colors transform hover:scale-105"
-                >
-                  Technology
-                </a>
-              </li>
-              <li>
-                <a
-                  href="/lifestyle"
-                  className="hover:text-primary transition-colors transform hover:scale-105"
-                >
-                  Lifestyle
-                </a>
-              </li>
-              <li>
-                <a
-                  href="/productivity"
-                  className="hover:text-primary transition-colors transform hover:scale-105"
-                >
-                  Productivity
-                </a>
-              </li>
-              <li className="flex items-center">
-                <a
-                  href="/ai"
-                  className="hover:text-primary transition-colors transform hover:scale-105"
-                >
-                  Artificial Intelligence
-                </a>
-                <Badge variant="secondary" className="ml-2 animate-pulse">
-                  New
-                </Badge>
-              </li>
-              <li>
-                <a
-                  href="/writing"
-                  className="hover:text-primary transition-colors transform hover:scale-105"
-                >
-                  Writing Tips
-                </a>
-              </li>
+              {categories?.slice(0, 5).map((cat, idx) => (
+                <li key={cat._id} className="flex items-center gap-2">
+                  <Link
+                    to={`/category/${cat._id}?name=${encodeURIComponent(
+                      cat.name
+                    )}`}
+                    className="hover:text-primary transition-colors transform hover:scale-105"
+                  >
+                    {cat.name}
+                  </Link>
+                  {idx === 0 && (
+                    <Badge variant="secondary" className="ml-2 animate-pulse">
+                      New
+                    </Badge>
+                  )}
+                </li>
+              ))}
             </ul>
           </div>
 
@@ -118,37 +94,37 @@ const Footer = () => {
             </h3>
             <ul className="space-y-2">
               <li>
-                <a
-                  href="/2024/01"
+                <Link
+                  to="/2024/01"
                   className="hover:text-primary transition-colors transform hover:scale-105"
                 >
                   January 2024
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="/2023/12"
+                <Link
+                  to="/2023/12"
                   className="hover:text-primary transition-colors transform hover:scale-105"
                 >
                   December 2023
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="/2023/11"
+                <Link
+                  to="/2023/11"
                   className="hover:text-primary transition-colors transform hover:scale-105"
                 >
                   November 2023
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="/archives"
+                <Link
+                  to="/archives"
                   className="flex items-center group hover:text-primary transition-colors"
                 >
                   View all archives
                   <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform ease-in-out duration-300" />
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -163,28 +139,28 @@ const Footer = () => {
             </p>
             <ul className="space-y-2">
               <li>
-                <a
-                  href="/about"
+                <Link
+                  to="/about"
                   className="hover:text-primary transition-colors transform hover:scale-105"
                 >
                   About Us
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="/contact"
+                <Link
+                  to="/contact"
                   className="hover:text-primary transition-colors transform hover:scale-105"
                 >
                   Contact
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="/write"
+                <Link
+                  to="/write"
                   className="hover:text-primary transition-colors transform hover:scale-105"
                 >
                   Write for Us
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -194,30 +170,32 @@ const Footer = () => {
 
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="flex space-x-6 mb-4 md:mb-0">
-            <a
-              href="/terms"
+            <Link
+              to="/terms"
               className="hover:text-primary transition-colors transform hover:scale-105"
             >
               Terms
-            </a>
-            <a
-              href="/privacy"
+            </Link>
+            <Link
+              to="/privacy"
               className="hover:text-primary transition-colors transform hover:scale-105"
             >
               Privacy
-            </a>
-            <a
-              href="/faq"
+            </Link>
+            <Link
+              to="/faq"
               className="hover:text-primary transition-colors flex items-center"
             >
               <Rss className="w-4 h-4 mr-1 transform hover:scale-110" />
               FAQ
-            </a>
+            </Link>
           </div>
           <div className="flex items-center space-x-4 mb-4 md:mb-0">
             <a
               href="https://twitter.com/mand1pshah"
               className="hover:text-primary transition-colors transform hover:scale-110"
+              target="_blank"
+              rel="noopener noreferrer"
             >
               <Twitter className="w-5 h-5" />
             </a>
@@ -230,6 +208,8 @@ const Footer = () => {
             <a
               href="https://www.linkedin.com/in/mandip-kanu-589790168/"
               className="hover:text-primary transition-colors transform hover:scale-110"
+              target="_blank"
+              rel="noopener noreferrer"
             >
               <Linkedin className="w-5 h-5" />
             </a>

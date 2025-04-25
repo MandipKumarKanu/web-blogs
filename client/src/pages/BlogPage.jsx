@@ -545,7 +545,7 @@ export default function BlogPage() {
         isOpen={commentsOpen}
         onClose={() => setCommentsOpen(false)}
         incrementComment={incrementComment}
-        blogAuthorId={blog?.author?._id || ""} // Add fallback empty string
+        blogAuthorId={blog?.author?._id || ""}
       />
     </div>
   );

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ArrowRight, TrendingUp, Clock, Bookmark } from "lucide-react";
+import { ArrowRight, TrendingUp, Clock, Bookmark, Search } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Card,
@@ -11,12 +11,13 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input"; // Added Input component
 import parse from "html-react-parser";
 import { getByCategoryGrp } from "@/components/api/blog";
 import { Link } from "react-router-dom";
 import useCategoryTagStore from "@/store/useCategoryTagStore";
 
-// Featured Blog Card Skeleton
+// Featured Blog Card Skeleton component remains the same
 const FeaturedBlogCardSkeleton = () => (
   <Card className="h-full border-0 overflow-hidden bg-gradient-to-br from-primary/5 to-background shadow-xl rounded-xl">
     <div className="flex flex-col h-full">
@@ -48,7 +49,7 @@ const FeaturedBlogCardSkeleton = () => (
   </Card>
 );
 
-// Regular Blog Card Skeleton
+// Regular Blog Card Skeleton component remains the same
 const RegularBlogCardSkeleton = () => (
   <Card className="h-full border border-border/30 bg-card shadow-md rounded-lg overflow-hidden">
     <CardHeader className="pb-2">
@@ -72,7 +73,7 @@ const RegularBlogCardSkeleton = () => (
   </Card>
 );
 
-// Category Section Skeleton
+// Category Section Skeleton component remains the same
 const CategorySectionSkeleton = ({ index }) => (
   <div className={index > 0 ? "mt-24" : ""}>
     <div className="flex justify-between items-center mb-8">
@@ -109,6 +110,8 @@ const TopicPage = () => {
   const [categoryBlogs, setCategoryBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  // New state for search
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     if (categories.length === 0) {
@@ -145,6 +148,12 @@ const TopicPage = () => {
   const getRandomReadTime = () => {
     return Math.floor(Math.random() * 15) + 3;
   };
+
+  // Filter categories based on search query
+  const filteredCategoryBlogs = categoryBlogs.filter((categoryBlog) => {
+    const categoryName = getCategoryName(categoryBlog.category);
+    return categoryName.toLowerCase().includes(searchQuery.toLowerCase());
+  });
 
   const renderBlogCard = (blog, isFeatured = false) => {
     const readTime = getRandomReadTime();
@@ -251,6 +260,21 @@ const TopicPage = () => {
   return (
     <section className="py-16 bg-background">
       <div className="container mx-auto px-4">
+        {/* Search Bar */}
+        <div className="mb-12">
+          <div className="relative max-w-md mx-auto">
+            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+              <Search className="h-5 w-5" />
+            </div>
+            <Input
+              placeholder="Search categories..."
+              className="pl-10 pr-4 py-6 border-border/30 bg-card shadow-sm focus-visible:ring-primary"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        </div>
+
         {categoryBlogs.length === 0 ? (
           <div className="text-center py-16">
             <div className="mx-auto w-24 h-24 bg-muted/20 rounded-full flex items-center justify-center mb-6">
@@ -263,8 +287,26 @@ const TopicPage = () => {
               Check back soon for exciting content across various topics.
             </p>
           </div>
+        ) : filteredCategoryBlogs.length === 0 ? (
+          <div className="text-center py-16">
+            <div className="mx-auto w-24 h-24 bg-muted/20 rounded-full flex items-center justify-center mb-6">
+              <Search className="h-12 w-12 text-muted-foreground" />
+            </div>
+            <h2 className="text-2xl font-medium text-muted-foreground">
+              No matching categories found.
+            </h2>
+            <p className="mt-4 text-muted-foreground max-w-md mx-auto">
+              Try a different search term or explore all categories.
+            </p>
+            <button
+              className="mt-6 bg-primary text-primary-foreground px-6 py-2 rounded-full hover:bg-primary/90 transition-colors"
+              onClick={() => setSearchQuery("")}
+            >
+              Show All Categories
+            </button>
+          </div>
         ) : (
-          categoryBlogs.map(({ category, blogs }, categoryIndex) => {
+          filteredCategoryBlogs.map(({ category, blogs }, categoryIndex) => {
             const categoryName = getCategoryName(category);
             const featuredBlog = blogs.length > 0 ? blogs[0] : null;
             const regularBlogs = featuredBlog ? blogs.slice(1) : blogs;
@@ -332,7 +374,7 @@ const TopicPage = () => {
                   </div>
                 )}
 
-                {categoryIndex < categoryBlogs.length - 1 && (
+                {categoryIndex < filteredCategoryBlogs.length - 1 && (
                   <Separator className="mt-16 opacity-30" />
                 )}
               </div>

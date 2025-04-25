@@ -12,6 +12,7 @@ import { Card, CardContent } from "./ui/card";
 import BlogCard from "./BlogCard";
 import { getByCategory } from "./api/blog";
 import useCategoryTagStore from "@/store/useCategoryTagStore";
+import { Link } from "react-router-dom";
 
 const Category = () => {
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -55,13 +56,15 @@ const Category = () => {
         <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-center md:text-left ">
           Discover the World of Blogs
         </h2>
-        <Button
-          variant="outline"
-          className="text-muted-foreground flex items-center gap-2 px-6 py-3 rounded-full hover:bg-primary/10 hover:text-primary transition-all duration-300"
-        >
-          Explore All Posts
-          <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-        </Button>
+        <Link to={"/topics"}>
+          <Button
+            variant="outline"
+            className="text-muted-foreground flex items-center gap-2 px-6 py-3 rounded-full hover:bg-primary/10 hover:text-primary transition-all duration-300"
+          >
+            Explore All Posts
+            <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+          </Button>
+        </Link>
       </div>
 
       <div className="mt-6 px-8">

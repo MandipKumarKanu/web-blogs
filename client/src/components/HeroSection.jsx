@@ -1,11 +1,11 @@
+import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
 import { ArrowRight, Rocket, Sparkles } from "lucide-react";
 
 const HeroSection = () => {
   return (
     <section
-      className="min-h-[93dvh] flex items-center justify-center py-12 px-4 sm:px-8 
-      bg-gradient-to-br from-background via-background to-muted/20"
+      className="min-h-[93dvh] flex items-center justify-center py-12 px-4 sm:px-8"
     >
       <div className="container mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
         <div className="text-center lg:text-left space-y-8">
@@ -33,14 +33,17 @@ const HeroSection = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-            <Button
-              className="rounded-2xl px-8 py-6 text-lg bg-gradient-to-r from-primary to-secondary 
+            <Link to={"/new"}>
+              <Button
+                className="rounded-2xl px-8 py-6 text-lg bg-gradient-to-r from-primary to-secondary 
               hover:from-primary/90 hover:to-secondary/90 transition-all duration-300"
-              aria-label="Start Exploring"
-            >
-              Start Exploring
-              <ArrowRight className="h-5 w-5 ml-2" />
-            </Button>
+                aria-label="Start Exploring"
+              >
+                Start Exploring
+                <ArrowRight className="h-5 w-5 ml-2" />
+              </Button>
+            </Link>
+
             <Button
               variant="outline"
               className="rounded-2xl px-8 py-6 text-lg flex items-center gap-2 

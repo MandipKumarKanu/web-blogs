@@ -10,8 +10,10 @@ const useCategoryTagStore = create((set) => ({
   fetchCategoriesAndTags: async () => {
     set({ loading: true, error: null });
     try {
-      const categoryResponse = await customAxios.get("/categories?limit=all");
-      const tagResponse = await customAxios.get("/tags?limit=all");
+      const [categoryResponse, tagResponse] = await Promise.all([
+        customAxios.get("/categories?limit=all"),
+        customAxios.get("/tags?limit=all"),
+      ]);
 
       set({
         categories: categoryResponse.data.categories || [],

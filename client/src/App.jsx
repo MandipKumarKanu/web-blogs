@@ -17,6 +17,7 @@ import { Plus } from "lucide-react";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { useLocalStorage } from "./hooks/use-localStorage";
 import Loader from "./components/Loader";
+import AboutUs from "./components/AboutUs";
 
 const Home = lazy(() => import("./components/Home"));
 const Header = lazy(() => import("./components/Header"));
@@ -119,6 +120,7 @@ const App = () => {
               <Route path="/new" element={<NewBlog />} />
               <Route path="/faq" element={<FAQPage />} />
               <Route path="/profile/:id" element={<ProfilePage />} />
+              <Route path="/about" element={<AboutUs />} />
 
               <Route element={<ProtectedRoute />}>
                 <Route

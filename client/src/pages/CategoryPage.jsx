@@ -133,7 +133,7 @@ const CategoryPage = () => {
             </h3>
             <p className="text-muted-foreground">
               There are currently no articles available in the{" "}
-              {category.toLowerCase()} category.
+              "{categoryName.toLowerCase()}" category.
             </p>
           </div>
         )}
