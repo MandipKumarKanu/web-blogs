@@ -44,14 +44,14 @@ const createBlog = async (req, res) => {
       author: req.user.id,
       scheduledPublishDate: scheduledPublishDate || null,
       scheduled: !!scheduledPublishDate,
-      status: "published",
+      status: scheduledPublishDate ? "scheduled" : "published",
       publishedAt: scheduledPublishDate
         ? new Date(scheduledPublishDate)
         : new Date(),
     });
 
     res.status(201).json({
-      message: `Blog published successfully`,
+      message: `Blog ${scheduledPublishDate ? "scheduled" : "published"} successfully`,
       blog,
     });
   } catch (error) {
