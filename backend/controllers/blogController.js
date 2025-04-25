@@ -497,18 +497,20 @@ const getPopularBlog = async (req, res) => {
     const threeDaysAgo = new Date();
     threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
 
-    const blogs = await Blog.aggregate([
+    // Try to get popular blogs from the last 3 days
+    let blogs = await Blog.aggregate([
       {
-        $match: { status: "published" },
+        $match: {
+          status: "published",
+          publishedAt: { $gte: threeDaysAgo },
+        },
       },
       {
         $addFields: {
           isRecent: { $cond: [{ $gte: ["$publishedAt", threeDaysAgo] }, 1, 0] },
         },
       },
-      {
-        $sort: { isRecent: -1, views: -1, publishedAt: -1 },
-      },
+      { $sort: { isRecent: -1, views: -1, publishedAt: -1 } },
       { $skip: skip },
       { $limit: parseInt(limit) },
       {
@@ -519,6 +521,7 @@ const getPopularBlog = async (req, res) => {
           as: "author",
         },
       },
+      { $unwind: "$author" },
       {
         $lookup: {
           from: "categories",
@@ -526,9 +529,6 @@ const getPopularBlog = async (req, res) => {
           foreignField: "_id",
           as: "categories",
         },
-      },
-      {
-        $unwind: "$author",
       },
       {
         $project: {
@@ -546,6 +546,50 @@ const getPopularBlog = async (req, res) => {
         },
       },
     ]);
+
+    // Fallback: If no popular blogs in last 3 days, get most viewed published blogs
+    if (!blogs || blogs.length === 0) {
+      blogs = await Blog.aggregate([
+        {
+          $match: { status: "published" },
+        },
+        { $sort: { views: -1, publishedAt: -1 } },
+        { $skip: skip },
+        { $limit: parseInt(limit) },
+        {
+          $lookup: {
+            from: "users",
+            localField: "author",
+            foreignField: "_id",
+            as: "author",
+          },
+        },
+        { $unwind: "$author" },
+        {
+          $lookup: {
+            from: "categories",
+            localField: "category",
+            foreignField: "_id",
+            as: "categories",
+          },
+        },
+        {
+          $project: {
+            title: 1,
+            content: 1,
+            views: 1,
+            publishedAt: 1,
+            categories: 1,
+            image: 1,
+            isRecent: 1,
+            "author.name": 1,
+            "author.userName": 1,
+            "author.email": 1,
+            "author.profileImage": 1,
+          },
+        },
+      ]);
+    }
 
     const totalBlogs = await Blog.countDocuments({ status: "published" });
     const totalPages = Math.ceil(totalBlogs / limit);
