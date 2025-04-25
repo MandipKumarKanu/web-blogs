@@ -373,7 +373,10 @@ const getByCategory = async (req, res, next) => {
         .sort({ publishedAt: -1 })
         .skip(skip)
         .limit(parseInt(limit));
-      totalBlogs = await Blog.countDocuments({ category: category, status: "published" });
+      totalBlogs = await Blog.countDocuments({
+        category: category,
+        status: "published",
+      });
     }
     totalPages = Math.ceil(totalBlogs / limit);
 
@@ -751,6 +754,9 @@ const getBlogsByCategoryPage = async (req, res) => {
 const getRecommendedBlogs = async (req, res) => {
   try {
     const id = req.params.id;
+    const { bId } = req.body;
+
+    // console.log(bId)
     // const user = await Blog.findById(req.user?.id);
     let blogs;
 
@@ -758,12 +764,18 @@ const getRecommendedBlogs = async (req, res) => {
       blogs = await Blog.find({
         category: { $in: id },
         status: "published",
+        _id: { $ne: bId },
       })
         .sort({ likes: -1, createdAt: -1 })
         .limit(3);
     } else {
       blogs = await Blog.aggregate([
-        { $match: { status: "published" } },
+        {
+          $match: {
+            status: "published",
+            _id: { $ne: mongoose.Types.ObjectId(bId) },
+          },
+        },
         { $sample: { size: 3 } },
       ]);
     }

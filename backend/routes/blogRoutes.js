@@ -29,6 +29,7 @@ const roleMiddleware = require("../middleware/roleMiddleware");
 const userMiddleware = require("../middleware/userMiddleware");
 const router = express.Router();
 
+router.post("/recommended/:id", userMiddleware, getRecommendedBlogs);
 router.post(
   "/",
   authMiddleware,
@@ -53,7 +54,6 @@ router.get(
   getAllBlogsForAdmin
 );
 router.get("/popularmonth", getPopularBlogsOfMonth);
-router.get("/recommended/:id", userMiddleware, getRecommendedBlogs);
 router.get(
   "/unapproved",
   authMiddleware,

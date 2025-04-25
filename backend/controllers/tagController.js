@@ -4,7 +4,9 @@ const createTag = async (req, res) => {
   const { name } = req.body;
 
   try {
-    const f = await Tag.findOne({ name: { $regex: `^${name}$`, $options: "i" } });
+    const f = await Tag.findOne({
+      name: { $regex: `^${name}$`, $options: "i" },
+    });
     if (f) {
       return res.status(400).json({ message: "Tag already exists" });
     }
@@ -25,11 +27,15 @@ const getAllTags = async (req, res) => {
     let totalPages = Math.ceil(totalTags / limit);
 
     if (limit === "all") {
-      tags = await Tag.find();
+      tags = await Tag.find().sort({ name: 1 });
+
       totalPages = 1;
     } else {
       const skip = (page - 1) * limit;
-      tags = await Tag.find().skip(skip).limit(parseInt(limit));
+      tags = await Tag.find()
+        .skip(skip)
+        .limit(parseInt(limit))
+        .sort({ name: 1 });
     }
 
     res.status(200).json({
@@ -63,7 +69,9 @@ const updateTag = async (req, res) => {
       name: { $regex: `^${name}$`, $options: "i" },
     });
     if (existingTag) {
-      return res.status(400).json({ message: "Tag with this name already exists" });
+      return res
+        .status(400)
+        .json({ message: "Tag with this name already exists" });
     }
 
     const tag = await Tag.findByIdAndUpdate(
