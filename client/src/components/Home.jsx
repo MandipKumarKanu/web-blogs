@@ -7,14 +7,14 @@ import Recommendation from "./Recommendation";
 
 const Home = () => {
   return (
-    <div>
+    <>
       <HeroSection />
       <RecentPosts />
       <Landing />
       <Recommendation />
       <Category />
       <Featured />
-    </div>
+    </>
   );
 };
 

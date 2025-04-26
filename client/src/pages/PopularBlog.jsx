@@ -1,19 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { useBlogStore } from "@/store/useBlogStore";
 import { Button } from "@/components/ui/button";
-import {
-  ArrowRight,
-  CalendarDays,
-  User2,
-  Heart,
-  Share2,
-  ArrowUpRight,
-} from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent } from "@/components/ui/card";
 import PopularCard from "@/components/PopularCard";
-import { Link } from "react-router-dom";
 import { PopularCardSkeleton } from "@/components/PopularCardSkeleton";
 
 const PopularBlog = () => {
@@ -47,7 +38,7 @@ const PopularBlog = () => {
     }
   }, []);
 
-  if (loading) {
+  if (loading && !popularBlogs) {
     return (
       <section className="py-16 bg-background">
         <div className="container mx-auto px-4">

@@ -317,7 +317,7 @@ const UsersPage = () => {
                     <span className="block text-xs text-muted-foreground uppercase">
                       Role
                     </span>
-                    <span className="block">{userDetails.role}</span>
+                    <span className="bloc capitalize">{userDetails.role}</span>
                   </div>
                   <div>
                     <span className="block text-xs text-muted-foreground uppercase">

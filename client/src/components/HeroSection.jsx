@@ -4,9 +4,7 @@ import { ArrowRight, Rocket, Sparkles } from "lucide-react";
 
 const HeroSection = () => {
   return (
-    <section
-      className="min-h-[93dvh] flex items-center justify-center py-12 px-4 sm:px-8"
-    >
+    <section className="min-h-[93dvh] flex items-center justify-center py-12 px-4 sm:px-8">
       <div className="container mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
         <div className="text-center lg:text-left space-y-8">
           <div

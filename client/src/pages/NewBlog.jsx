@@ -17,16 +17,13 @@ const NewBlog = () => {
 
   const fetchMoreData = async () => {
     if (!hasMore) return;
-
     try {
       const nextPage = currentPage + 1;
       const newBlogs = await getAllBlogs(nextPage, PAGE_SIZE);
-
       if (!newBlogs || newBlogs.length === 0 || nextPage >= totalPages) {
         setHasMore(false);
         return;
       }
-
       setBlogs((prev) => [...prev, ...newBlogs]);
       setCurrentPage(nextPage);
     } catch (err) {

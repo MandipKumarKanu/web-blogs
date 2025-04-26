@@ -50,6 +50,7 @@ import { createBlog } from "@/components/api/blog";
 import { toast } from "sonner";
 import { CKEditorComp } from "@/components/ckEditor";
 import useCategoryTagStore from "@/store/useCategoryTagStore";
+import { DateHelper } from "@/components/helper/dateHelper";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -64,7 +65,7 @@ const blogSchema = z.object({
       (file) => ACCEPTED_IMAGE_TYPES.includes(file.type),
       "Only .jpg, .png and .webp formats are supported"
     ),
-  status: z.enum(["pending", "scheduled"]),
+  status: z.enum(["published", "scheduled"]),
   scheduledPublishDate: z.date().optional().nullable(),
 });
 
@@ -95,7 +96,7 @@ const BlogForm = () => {
     defaultValues: {
       title: "",
       content: "",
-      status: "pending",
+      status: "published",
       scheduledPublishDate: null,
     },
     mode: "onChange",
@@ -128,7 +129,7 @@ const BlogForm = () => {
   ];
 
   useEffect(() => {
-    if (status === "pending") {
+    if (status === "published") {
       setValue("scheduledPublishDate", null);
     }
   }, [status, setValue]);
@@ -221,7 +222,7 @@ const BlogForm = () => {
         imageUrl = await uploadToImgBB(data.image);
       }
 
-      if (data.status === "pending") {
+      if (data.status === "published") {
         data.scheduledPublishDate = null;
       }
 
@@ -231,7 +232,9 @@ const BlogForm = () => {
         tags: selectedTags,
         category: selectedCategories,
         image: imageUrl,
-        scheduledPublishDate: data.scheduledPublishDate,
+        scheduledPublishDate:
+          data.scheduledPublishDate &&
+          DateHelper.toUTC(data.scheduledPublishDate),
       });
       toast.success(res.data.message);
 
@@ -459,7 +462,7 @@ const BlogForm = () => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="pending">Publish Now</SelectItem>
+                          <SelectItem value="published">Publish Now</SelectItem>
                           <SelectItem value="scheduled">Schedule</SelectItem>
                         </SelectContent>
                       </Select>

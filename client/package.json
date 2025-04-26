@@ -44,6 +44,7 @@
     "html-react-parser": "^5.2.2",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.474.0",
+    "moment-timezone": "^0.5.48",
     "next-themes": "^0.4.4",
     "postinstall": "^0.7.5",
     "react": "^18.3.1",

@@ -10,19 +10,39 @@ import { FaRegHeart } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { useAuthStore } from "@/store/useAuthStore";
 import axios from "axios";
+import { Skeleton } from "./ui/skeleton";
+
+const SkeletonCard = () => (
+  <Card className="w-full flex-shrink-0 overflow-hidden">
+    <Skeleton className="h-48 w-full" />
+    <CardHeader className="space-y-3 p-4">
+      <Skeleton className="h-6 w-3/4" />
+      <Skeleton className="h-4 w-1/3" />
+    </CardHeader>
+    <div className="flex items-center justify-between px-4 pb-4">
+      <div className="flex gap-4">
+        <Skeleton className="h-8 w-16 rounded-full" />
+        <Skeleton className="h-8 w-16 rounded-full" />
+      </div>
+      <Skeleton className="h-10 w-28 rounded-md" />
+    </div>
+  </Card>
+);
 
 const BlogCard = ({ blog }) => {
   return (
     <Card className="group overflow-hidden transition-all duration-300 hover:ring-2 hover:ring-primary hover:shadow-lg flex-shrink-0 w-full">
-      <div className="relative h-48 overflow-hidden">
-        <img
-          src={blog.image}
-          alt={blog.title}
-          loading="lazy"
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
-      </div>
+      <Link to={`/blog/${blog?._id}`}>
+        <div className="relative h-48 overflow-hidden cursor-pointer">
+          <img
+            src={blog.image}
+            alt={blog.title}
+            loading="lazy"
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+        </div>
+      </Link>
 
       <CardHeader className="space-y-2 p-4">
         <Link to={`/blog/${blog?._id}`}>
@@ -90,13 +110,26 @@ const Recommendation = () => {
     fetchRecommendations();
   }, [interests, user, token]);
 
+ const l =true
+ 
   if (loading) {
     return (
       <section className="w-full py-12 md:py-24 bg-gradient-to-br from-background via-background to-muted/10">
-        <div className="container mx-auto px-4 text-center">
-          <p className="text-lg text-muted-foreground">
-            Loading recommendations...
-          </p>
+        <div className="container mx-auto px-4">
+          <div className="max-w-2xl mx-auto mb-6 text-center">
+            <h2 className="text-3xl md:text-5xl font-bold mb-6">
+              Recommended for You
+            </h2>
+            <p className="text-muted-foreground">
+              AI is analyzing your interests and preferences to provide personalized recommendations.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
         </div>
       </section>
     );
@@ -122,13 +155,6 @@ const Recommendation = () => {
           <p className="text-muted-foreground ">
             Based on your interests, here are some articles you might like.
           </p>
-          {/* <Button
-            variant="outline"
-            size="lg"
-            className="max-w-44 rounded-full px-8 py-6 text-lg hover:bg-primary/10 hover:text-primary transition-all duration-300"
-          >
-            Explore More
-          </Button> */}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -47,6 +47,7 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { DateHelper } from "./helper/dateHelper";
 
 const fetchComments = async (blogId, sort = "newest") => {
   try {
@@ -98,31 +99,26 @@ const deleteCommentById = async (commentId) => {
   }
 };
 
-// Modified to gather all replies (regardless of depth) under the parent comment
 const flattenCommentHierarchy = (comments) => {
   const parentMap = new Map();
   const rootComments = [];
   const replyMap = new Map();
 
-  // Identify all parent comments
   comments.forEach((comment) => {
     if (!comment.parentComment) {
       rootComments.push(comment);
       replyMap.set(comment._id, []);
     } else {
-      // Track all replies with their top-level parent
       if (!parentMap.has(comment._id)) {
         parentMap.set(comment._id, comment.parentComment);
       }
     }
   });
 
-  // Find root parent for each comment
   const findRootParent = (commentId) => {
     let currentId = commentId;
     while (parentMap.has(currentId)) {
       currentId = parentMap.get(currentId);
-      // If we've found a top-level comment, stop traversing
       if (!parentMap.has(currentId)) {
         return currentId;
       }
@@ -130,7 +126,6 @@ const flattenCommentHierarchy = (comments) => {
     return currentId;
   };
 
-  // Group all replies under their root parent
   comments.forEach((comment) => {
     if (comment.parentComment) {
       const rootParentId = findRootParent(comment.parentComment);
@@ -140,7 +135,6 @@ const flattenCommentHierarchy = (comments) => {
     }
   });
 
-  // Sort replies by creation date
   replyMap.forEach((replies, parentId) => {
     replies.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
   });
@@ -164,7 +158,6 @@ const CommentInput = ({
   useEffect(() => {
     if (isEdit && textareaRef.current) {
       textareaRef.current.focus();
-      // Move cursor to end of text
       const length = textareaRef.current.value.length;
       textareaRef.current.setSelectionRange(length, length);
     }
@@ -275,11 +268,12 @@ const ReplyItem = ({
   const isMyComment = user && reply.author?._id === user.id;
   const isDeleted = reply.isDeleted;
 
-  const timeSinceCreation = formatDistanceToNow(new Date(reply.createdAt), {
-    addSuffix: true,
-  });
+  const timeSinceCreation = formatDistanceToNow(
+    DateHelper.toNPT(reply.createdAt),
+    { addSuffix: true }
+  );
   const formattedDate = format(
-    new Date(reply.createdAt),
+    DateHelper.toNPT(reply.createdAt),
     "MMM d, yyyy 'at' h:mm a"
   );
 
@@ -456,11 +450,12 @@ const CommentItem = ({
   const isDeleted = comment.isDeleted;
   const hasReplies = replies && replies.length > 0;
 
-  const timeSinceCreation = formatDistanceToNow(new Date(comment.createdAt), {
-    addSuffix: true,
-  });
+  const timeSinceCreation = formatDistanceToNow(
+    DateHelper.toNPT(comment.createdAt),
+    { addSuffix: true }
+  );
   const formattedDate = format(
-    new Date(comment.createdAt),
+    DateHelper.toNPT(comment.createdAt),
     "MMM d, yyyy 'at' h:mm a"
   );
 
@@ -699,14 +694,12 @@ const CommentsDialog = ({
   const { token, user } = useAuthStore();
   const scrollRef = useRef(null);
 
-  // Load comments just once when dialog opens
   useEffect(() => {
     if (isOpen) {
       loadComments();
     }
   }, [isOpen, blogId]);
 
-  // Process comments locally when sort or filter changes
   useEffect(() => {
     if (commentsData.allComments.length > 0) {
       processComments(commentsData.allComments);
@@ -716,7 +709,7 @@ const CommentsDialog = ({
   const loadComments = async () => {
     setLoading(true);
     try {
-      const fetchedComments = await fetchComments(blogId, "newest"); // Always fetch newest, then sort locally
+      const fetchedComments = await fetchComments(blogId, "newest");
       setCommentsData((prevState) => ({
         ...prevState,
         allComments: fetchedComments,
@@ -731,7 +724,6 @@ const CommentsDialog = ({
   };
 
   const processComments = (comments) => {
-    // Apply filtering
     let filteredComments = [...comments];
     if (filter === "mine" && user) {
       filteredComments = comments.filter((c) => c.author?._id === user.id);
@@ -739,7 +731,6 @@ const CommentsDialog = ({
       filteredComments = comments.filter((c) => c.author?._id === blogAuthorId);
     }
 
-    // Apply sorting
     if (sort === "newest") {
       filteredComments.sort(
         (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
@@ -750,11 +741,9 @@ const CommentsDialog = ({
       );
     }
 
-    // Process the hierarchy
     const { rootComments, replyMap } =
       flattenCommentHierarchy(filteredComments);
 
-    // Update state with processed data
     setCommentsData((prevState) => ({
       ...prevState,
       filteredComments,
@@ -773,7 +762,7 @@ const CommentsDialog = ({
     setCommenting(true);
     try {
       await postComment(blogId, content, parentId);
-      await loadComments(); // Refetch all comments
+      await loadComments();
       incrementComment();
       toast.success("Your comment has been added successfully");
     } catch (error) {
@@ -788,7 +777,7 @@ const CommentsDialog = ({
     if (!token) return;
     try {
       await updateCommentById(commentId, newContent);
-      await loadComments(); // Refetch all comments
+      await loadComments();
       toast.success("Your changes have been saved");
     } catch (error) {
       console.error("Error updating comment:", error);
@@ -800,7 +789,7 @@ const CommentsDialog = ({
     if (!token) return;
     try {
       await deleteCommentById(commentId);
-      await loadComments(); // Refetch all comments
+      await loadComments();
     } catch (error) {
       console.error("Error deleting comment:", error);
       toast.error("Failed to delete comment. Please try again.");
