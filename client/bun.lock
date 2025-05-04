@@ -50,6 +50,7 @@
         "react-infinite-scroll-component": "^6.1.0",
         "react-router-dom": "^7.1.5",
         "react-select": "^5.10.0",
+        "react-transition-group": "^4.4.5",
         "react-web-share": "^2.0.2",
         "slate": "^0.112.0",
         "slate-react": "^0.112.1",

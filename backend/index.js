@@ -10,17 +10,17 @@ const notificationRoute = require("./routes/notificationRoute");
 const tagRoutes = require("./routes/tagRoutes");
 const categoryRoutes = require("./routes/categoryRoutes");
 const statsRoutes = require("./routes/statsRoutes");
-const startCronJob = require("./corn");
-// const socketIo = require("socket.io");
+const startCronJob = require("./cron");
 const http = require("http");
-// const setupSocket = require("./socket");
 
 const app = express();
 const server = http.createServer(app);
-// const io = setupSocket(server);
-// app.set("io", io);
 
 connectDB();
+
+app.get("/", (req, res) => {
+  res.send("API is running...");
+});
 
 app.use(express.json());
 app.use(cookieParser());
@@ -47,9 +47,9 @@ const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-  if (process.env.NODE_ENV === "production") {
-    startCronJob();
-  }
+  // if (process.env.NODE_ENV === "production") {
+  startCronJob();
+  // }
 });
 
 process.on("unhandledRejection", (err) => {

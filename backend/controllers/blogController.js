@@ -51,7 +51,9 @@ const createBlog = async (req, res) => {
     });
 
     res.status(201).json({
-      message: `Blog ${scheduledPublishDate ? "scheduled" : "published"} successfully`,
+      message: `Blog ${
+        scheduledPublishDate ? "scheduled" : "published"
+      } successfully`,
       blog,
     });
   } catch (error) {
@@ -192,7 +194,41 @@ const summarizeBlog = async (req, res) => {
       throw new Error("Blog not found");
     }
 
-    const prompt = `Summarize the following content by ignoring the HTML tags and providing at least 5 key points (same as the content language like English, Hindi, Nepali or any other) , you can give more for user to understand nicely in HTML list bullet form. Be concise and cover the most important aspects in easy term to be understand by simple people, if there is any date or time, mention that point too. Only return the HTML code without any explanations or extra text. The list should be in the following format:\n\n<ul class="list-disc ml-6 space-y-2 text-muted-foreground">\n  <li>...</li>\n  <li>...</li>\n</ul>\n\nContent:\n\n${blog.content}`;
+    const prompt = `
+    # 🌍 POLYGLOT ESSENCE EXTRACTOR 🧠
+    
+    You are a master of cross-linguistic content distillation, capable of identifying and extracting the essence from any text, regardless of language.
+    
+    ## YOUR MISSION 🎯
+    
+    Transform the provided content into a razor-sharp summary containing the most valuable insights. Your summary must:
+    - Be in the EXACT SAME LANGUAGE as the original content
+    - Identify a MINIMUM of 5 critical elements
+    - Maintain the author's original tone and perspective
+    - Preserve all crucial numerical data and statistics
+    
+    ## EXTRACTION TARGETS 🔍
+    
+    │ 📊 CORE DATA         │ Essential statistics, measurements, and quantifiable information
+    │ 💡 KEY INSIGHTS      │ Central arguments and transformative ideas
+    │ ⏱️ CRITICAL TIMELINES │ Significant dates, sequences, and chronological elements
+    │ 🏆 MAJOR OUTCOMES    │ Results, conclusions, and consequences
+    │ 💬 STANDOUT QUOTES   │ Memorable phrases and distinctive perspectives
+    
+    ## OUTPUT FORMAT ⚙️
+    
+    Return ONLY a semantic HTML bullet list - no preamble, no commentary:
+    
+    <ul class="list-disc ml-6 space-y-2 text-muted-foreground">
+      <li>Key point 1</li>
+      <li>Key point 2</li>
+      <!-- Continue with additional key points -->
+    </ul>
+    
+    ## SOURCE MATERIAL with the below langguage i need 📑
+    
+    ${blog.content}
+    `;
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,

@@ -1,6 +1,6 @@
 import moment from "moment-timezone";
 
-const NPT_TIMEZONE = moment.tz.guess(); // Use system's local timezone
+const NPT_TIMEZONE = moment.tz.guess();
 
 export const DateHelper = {
   toUTC: (nptDateTimeStr) => {

@@ -23,6 +23,7 @@ import { useLocalStorage } from "./hooks/use-localStorage";
 import Loader from "./components/Loader";
 import AboutUs from "./components/AboutUs";
 import { TooltipProvider } from "./components/ui/tooltip";
+import ContactPage from "./pages/Contact";
 
 const Home = lazy(() => import("./components/Home"));
 const Header = lazy(() => import("./components/Header"));
@@ -127,6 +128,7 @@ const App = () => {
                 <Route path="/faq" element={<FAQPage />} />
                 <Route path="/profile/:id" element={<ProfilePage />} />
                 <Route path="/about" element={<AboutUs />} />
+                <Route path="/contact" element={<ContactPage />} />
 
                 <Route element={<ProtectedRoute />}>
                   <Route

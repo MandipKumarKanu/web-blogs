@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { format } from "date-fns";
+import { format, set, parse } from "date-fns";
 import {
   ImageIcon,
   Tags,
@@ -10,6 +10,7 @@ import {
   ArrowLeft,
   ArrowRight,
   Check,
+  Clock,
 } from "lucide-react";
 import {
   Card,
@@ -67,6 +68,7 @@ const blogSchema = z.object({
     ),
   status: z.enum(["published", "scheduled"]),
   scheduledPublishDate: z.date().optional().nullable(),
+  scheduledPublishTime: z.string().optional().nullable(),
 });
 
 const BlogForm = () => {
@@ -77,6 +79,7 @@ const BlogForm = () => {
   const [desc, setDesc] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
+  const [timeOptions, setTimeOptions] = useState([]);
   const totalSteps = 3;
 
   const { categories, tags } = useCategoryTagStore();
@@ -98,6 +101,7 @@ const BlogForm = () => {
       content: "",
       status: "published",
       scheduledPublishDate: null,
+      scheduledPublishTime: "12:00",
     },
     mode: "onChange",
   });
@@ -106,6 +110,8 @@ const BlogForm = () => {
   const status = watch("status");
   const title = watch("title");
   const image = watch("image");
+  const scheduledDate = watch("scheduledPublishDate");
+  const scheduledTime = watch("scheduledPublishTime");
 
   const steps = [
     {
@@ -124,15 +130,78 @@ const BlogForm = () => {
       isComplete: () =>
         selectedCategories.length > 0 &&
         selectedTags.length > 0 &&
-        (status !== "scheduled" || form.watch("scheduledPublishDate")),
+        (status !== "scheduled" || (scheduledDate && scheduledTime)),
     },
   ];
 
   useEffect(() => {
     if (status === "published") {
       setValue("scheduledPublishDate", null);
+      setValue("scheduledPublishTime", null);
     }
   }, [status, setValue]);
+
+  const generateTimeOptions = () => {
+    const options = [];
+    const now = new Date();
+    const isToday =
+      scheduledDate &&
+      scheduledDate.getDate() === now.getDate() &&
+      scheduledDate.getMonth() === now.getMonth() &&
+      scheduledDate.getFullYear() === now.getFullYear();
+
+    let startHour = isToday ? now.getHours() : 0;
+    let startMinute =
+      isToday && startHour === now.getHours()
+        ? Math.ceil(now.getMinutes() / 30) * 30
+        : 0;
+
+    if (startMinute >= 60) {
+      startHour += 1;
+      startMinute = 0;
+    }
+
+    for (let hour = startHour; hour < 24; hour++) {
+      for (let minute = hour === startHour ? startMinute : 0; minute < 60; minute += 30) {
+        const formattedHour = hour.toString().padStart(2, "0");
+        const formattedMinute = minute.toString().padStart(2, "0");
+        const timeString = `${formattedHour}:${formattedMinute}`;
+        options.push(timeString);
+      }
+    }
+
+    return options;
+  };
+
+  useEffect(() => {
+    setTimeOptions(generateTimeOptions());
+  }, [scheduledDate]);
+
+  useEffect(() => {
+    const now = new Date();
+    const isToday =
+      scheduledDate &&
+      scheduledDate.getDate() === now.getDate() &&
+      scheduledDate.getMonth() === now.getMonth() &&
+      scheduledDate.getFullYear() === now.getFullYear();
+
+    if (isToday && scheduledTime) {
+      const [hours, minutes] = scheduledTime.split(":").map(Number);
+      if (
+        hours < now.getHours() ||
+        (hours === now.getHours() && minutes <= now.getMinutes())
+      ) {
+        const nextTime = new Date();
+        nextTime.setMinutes(nextTime.getMinutes() + 30);
+        nextTime.setMinutes(Math.ceil(nextTime.getMinutes() / 30) * 30);
+        
+        const nextTimeString = 
+          `${nextTime.getHours().toString().padStart(2, '0')}:${nextTime.getMinutes().toString().padStart(2, '0')}`;
+        
+        setValue("scheduledPublishTime", nextTimeString);
+      }
+    }
+  }, [scheduledDate, scheduledTime, setValue]);
 
   const uploadToImgBB = async (file) => {
     const formData = new FormData();
@@ -213,6 +282,19 @@ const BlogForm = () => {
     return true;
   };
 
+  const combineDateTime = (date, timeString) => {
+    if (!date || !timeString) return null;
+
+    const [hours, minutes] = timeString.split(":").map(Number);
+
+    return set(date, {
+      hours,
+      minutes,
+      seconds: 0,
+      milliseconds: 0,
+    });
+  };
+
   const onSubmit = async (data) => {
     try {
       setIsSubmitting(true);
@@ -222,8 +304,16 @@ const BlogForm = () => {
         imageUrl = await uploadToImgBB(data.image);
       }
 
-      if (data.status === "published") {
-        data.scheduledPublishDate = null;
+      let publishDateTime = null;
+      if (
+        data.status === "scheduled" &&
+        data.scheduledPublishDate &&
+        data.scheduledPublishTime
+      ) {
+        publishDateTime = combineDateTime(
+          data.scheduledPublishDate,
+          data.scheduledPublishTime
+        );
       }
 
       const res = await createBlog({
@@ -233,8 +323,7 @@ const BlogForm = () => {
         category: selectedCategories,
         image: imageUrl,
         scheduledPublishDate:
-          data.scheduledPublishDate &&
-          DateHelper.toUTC(data.scheduledPublishDate),
+          publishDateTime && DateHelper.toUTC(publishDateTime),
       });
       toast.success(res.data.message);
 
@@ -415,7 +504,7 @@ const BlogForm = () => {
                   />
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  You can select only one categories
+                  You can select only one category
                 </p>
                 {selectedCategories.length === 0 && (
                   <p className="text-xs text-destructive mt-1">
@@ -470,8 +559,10 @@ const BlogForm = () => {
                     </FormItem>
                   )}
                 />
+              </div>
 
-                {status === "scheduled" && (
+              {status === "scheduled" && (
+                <div className="grid gap-4 sm:grid-cols-2">
                   <FormField
                     control={form.control}
                     name="scheduledPublishDate"
@@ -496,10 +587,16 @@ const BlogForm = () => {
                               mode="single"
                               selected={field.value}
                               onSelect={field.onChange}
-                              disabled={(date) =>
-                                date < new Date() ||
-                                date < new Date("1900-01-01")
-                              }
+                              disabled={(date) => {
+                                const today = new Date();
+                                today.setHours(0, 0, 0, 0);
+
+                                const maxDate = new Date();
+                                maxDate.setDate(maxDate.getDate() + 7);
+                                maxDate.setHours(23, 59, 59, 999);
+
+                                return date < today || date > maxDate;
+                              }}
                               initialFocus
                             />
                           </PopoverContent>
@@ -508,8 +605,91 @@ const BlogForm = () => {
                       </FormItem>
                     )}
                   />
-                )}
-              </div>
+
+                  <FormField
+                    control={form.control}
+                    name="scheduledPublishTime"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Schedule Time</FormLabel>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className={`w-full justify-start ${
+                                !field.value && "text-muted-foreground"
+                              }`}
+                            >
+                              {field.value
+                                ? format(
+                                    parse(field.value, "HH:mm", new Date()),
+                                    "h:mm a"
+                                  )
+                                : "Select time"}
+                              <Clock className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-[220px] p-2">
+                            <div className="space-y-2">
+                              <div className="grid grid-cols-3 gap-2 overflow-y-auto max-h-[300px]">
+                                {timeOptions.map((time) => {
+                                  const [h, m] = time.split(":");
+                                  const displayTime = format(
+                                    parse(time, "HH:mm", new Date()),
+                                    "h:mm a"
+                                  );
+
+                                  return (
+                                    <Button
+                                      key={time}
+                                      variant={
+                                        field.value === time
+                                          ? "default"
+                                          : "outline"
+                                      }
+                                      size="sm"
+                                      onClick={() => field.onChange(time)}
+                                      className="text-xs"
+                                    >
+                                      {displayTime}
+                                    </Button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                        {scheduledDate &&
+                          scheduledDate.getDate() === new Date().getDate() &&
+                          scheduledDate.getMonth() === new Date().getMonth() &&
+                          scheduledDate.getFullYear() === new Date().getFullYear() && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              For today, only future times can be selected
+                            </p>
+                          )}
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              )}
+
+              {status === "scheduled" && scheduledDate && scheduledTime && (
+                <div className="bg-primary/5 border border-primary/20 p-4 rounded-md">
+                  <h3 className="text-sm font-medium mb-2">Publishing Schedule</h3>
+                  <p className="text-sm flex items-center">
+                    <Clock className="h-4 w-4 mr-2 text-primary" />
+                    Blog will be published on{" "}
+                    <span className="font-medium ml-1 text-primary">
+                      {format(scheduledDate, "MMMM d, yyyy")} at{" "}
+                      {format(parse(scheduledTime, 'HH:mm', new Date()), 'h:mm a')}
+                    </span>
+                  </p>
+                  {/* <p className="text-xs text-muted-foreground mt-2">
+                    {new Date().toLocaleTimeString([], { timeZoneName: 'short' })} in your local time
+                  </p> */}
+                </div>
+              )}
             </div>
           </>
         );
@@ -523,7 +703,9 @@ const BlogForm = () => {
     isLastStep &&
     selectedCategories.length > 0 &&
     selectedTags.length > 0 &&
-    (status !== "scheduled" || form.watch("scheduledPublishDate"));
+    (status !== "scheduled" ||
+      (form.watch("scheduledPublishDate") &&
+        form.watch("scheduledPublishTime")));
 
   return (
     <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[calc(100dvh-80px)]">
