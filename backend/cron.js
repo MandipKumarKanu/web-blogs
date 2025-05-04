@@ -2,9 +2,9 @@ const cron = require("node-cron");
 const Blog = require("./models/Blog");
 
 const startCronJob = () => {
-  console.log("Cron job scheduled to run every 5 minutes");
+  console.log("Cron job scheduled to run every minute");
   
-  cron.schedule("*/5 * * * *", async () => {
+  cron.schedule("* * * * *", async () => {
     console.log("Cron job running at:", new Date().toISOString());
     const now = new Date();
 

@@ -18,7 +18,7 @@ import { jwtDecode } from "jwt-decode";
 import useResetScrollPosition from "./hooks/useResetScrollPosition";
 import useCategoryTagStore from "@/store/useCategoryTagStore";
 import { Plus } from "lucide-react";
-import ErrorBoundary from "./components/ErrorBoundary";
+// import ErrorBoundary from "./components/ErrorBoundary";
 import { useLocalStorage } from "./hooks/use-localStorage";
 import Loader from "./components/Loader";
 import AboutUs from "./components/AboutUs";
@@ -109,7 +109,7 @@ const App = () => {
 
   return (
     <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-      <ErrorBoundary>
+      {/* <ErrorBoundary> */}
         <TooltipProvider>
           <Suspense fallback={<Loader />}>
             {!isAdminRoute && <Header />}
@@ -170,7 +170,7 @@ const App = () => {
           </Suspense>
           <Toaster richColors />
         </TooltipProvider>
-      </ErrorBoundary>
+      {/* </ErrorBoundary> */}
     </ThemeProvider>
   );
 };

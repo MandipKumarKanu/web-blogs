@@ -10,7 +10,7 @@
   "crons": [
     {
       "path": "/api/cron-publish-blogs",
-      "schedule": "0 0,12 * * *"
+      "schedule": "* * * * *"
     }
   ]
 }

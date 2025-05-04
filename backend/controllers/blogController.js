@@ -206,6 +206,7 @@ const summarizeBlog = async (req, res) => {
     - Identify a MINIMUM of 5 critical elements
     - Maintain the author's original tone and perspective
     - Preserve all crucial numerical data and statistics
+    - Point should be short and easy to understand
     
     ## EXTRACTION TARGETS 🔍
     
@@ -919,7 +920,7 @@ const getAllBlogsForAdmin = async (req, res) => {
 
   try {
     const blogs = await Blog.find()
-      .select("title category tags createdAt author status")
+      .select("title category tags createdAt author status scheduledPublishDate publishedAt")
       .populate("author", "name email")
       .populate("category", "name")
       .populate("tags", "name")

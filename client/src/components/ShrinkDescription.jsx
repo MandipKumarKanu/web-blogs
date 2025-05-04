@@ -30,16 +30,7 @@ const ShrinkDescription = ({ desc, maxHeight = 400 }) => {
 
       {needsTruncation && !expanded && (
         <div
-          style={{
-            position: "absolute",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: "80px",
-            background:
-              "linear-gradient(to top, var(--background), transparent)",
-            pointerEvents: "none",
-          }}
+          className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background via-background/30 to-transparent pointer-events-none"
         />
       )}
 
@@ -50,7 +41,7 @@ const ShrinkDescription = ({ desc, maxHeight = 400 }) => {
             onClick={() => setExpanded(!expanded)}
             className="group hover:bg-accent/50 transition-colors duration-300"
           >
-            <span className="flex items-center gap-2 text-lg">
+            <span className="flex items-center gap-2 text-lg text-foreground">
               {expanded ? "Show Less" : "Read Full Blog"}
               <ChevronDown
                 className={`w-4 h-4 transition-transform duration-300 group-hover:translate-y-1 ${

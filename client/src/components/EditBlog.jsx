@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { format } from "date-fns";
+import { format, parse } from "date-fns";
 import {
   ImageIcon,
   Tags,
@@ -11,6 +11,7 @@ import {
   ArrowRight,
   Check,
   Loader2,
+  Clock,
 } from "lucide-react";
 import {
   Card,
@@ -75,6 +76,7 @@ const blogSchema = z.object({
     .optional(),
   status: z.enum(["pending", "scheduled", "published"]),
   scheduledPublishDate: z.date().optional().nullable(),
+  scheduledPublishTime: z.string().optional().nullable(),
 });
 
 const EditBlog = ({ eid }) => {
@@ -90,6 +92,7 @@ const EditBlog = ({ eid }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
+  const [timeOptions, setTimeOptions] = useState([]);
   const totalSteps = 3;
   const { categories, tags } = useCategoryTagStore();
 
@@ -99,6 +102,7 @@ const EditBlog = ({ eid }) => {
       title: "",
       status: "pending",
       scheduledPublishDate: null,
+      scheduledPublishTime: "12:00",
       image: null,
     },
     mode: "onChange",
@@ -107,11 +111,12 @@ const EditBlog = ({ eid }) => {
   const { watch, setValue, clearErrors, reset, formState } = form;
   const status = watch("status");
   const title = watch("title");
+  const scheduledDate = watch("scheduledPublishDate");
+  const scheduledTime = watch("scheduledPublishTime");
 
   const dId = id || eid;
 
   useEffect(() => {
-    // console.log(id);
     const fetchBlogById = async () => {
       try {
         setIsLoading(true);
@@ -131,12 +136,19 @@ const EditBlog = ({ eid }) => {
 
   useEffect(() => {
     if (blogData) {
+      let timeString = "12:00";
+      if (blogData.scheduledPublishDate) {
+        const scheduledDate = new Date(blogData.scheduledPublishDate);
+        timeString = format(scheduledDate, "HH:mm");
+      }
+
       form.reset({
         title: blogData.title,
         status: blogData.status,
         scheduledPublishDate: blogData.scheduledPublishDate
           ? new Date(blogData.scheduledPublishDate)
           : null,
+        scheduledPublishTime: timeString,
         image: blogData.image,
       });
 
@@ -164,6 +176,77 @@ const EditBlog = ({ eid }) => {
       setValue("scheduledPublishDate", null);
     }
   }, [status, setValue]);
+
+  const generateTimeOptions = () => {
+    const options = [];
+    const now = new Date();
+    const isToday =
+      scheduledDate &&
+      scheduledDate.getDate() === now.getDate() &&
+      scheduledDate.getMonth() === now.getMonth() &&
+      scheduledDate.getFullYear() === now.getFullYear();
+
+    let startHour = isToday ? now.getHours() : 0;
+    let startMinute =
+      isToday && startHour === now.getHours()
+        ? Math.ceil(now.getMinutes() / 30) * 30
+        : 0;
+
+    if (startMinute >= 60) {
+      startHour += 1;
+      startMinute = 0;
+    }
+
+    for (let hour = startHour; hour < 24; hour++) {
+      for (
+        let minute = hour === startHour ? startMinute : 0;
+        minute < 60;
+        minute += 30
+      ) {
+        const formattedHour = hour.toString().padStart(2, "0");
+        const formattedMinute = minute.toString().padStart(2, "0");
+        const timeString = `${formattedHour}:${formattedMinute}`;
+        options.push(timeString);
+      }
+    }
+
+    return options;
+  };
+
+  useEffect(() => {
+    setTimeOptions(generateTimeOptions());
+  }, [scheduledDate]);
+
+  useEffect(() => {
+    const now = new Date();
+    const isToday =
+      scheduledDate &&
+      scheduledDate.getDate() === now.getDate() &&
+      scheduledDate.getMonth() === now.getMonth() &&
+      scheduledDate.getFullYear() === now.getFullYear();
+
+    if (isToday && scheduledTime) {
+      const [hours, minutes] = scheduledTime.split(":").map(Number);
+      if (
+        hours < now.getHours() ||
+        (hours === now.getHours() && minutes <= now.getMinutes())
+      ) {
+        const nextTime = new Date();
+        nextTime.setMinutes(nextTime.getMinutes() + 30);
+        nextTime.setMinutes(Math.ceil(nextTime.getMinutes() / 30) * 30);
+
+        const nextTimeString = `${nextTime
+          .getHours()
+          .toString()
+          .padStart(2, "0")}:${nextTime
+          .getMinutes()
+          .toString()
+          .padStart(2, "0")}`;
+
+        setValue("scheduledPublishTime", nextTimeString);
+      }
+    }
+  }, [scheduledDate, scheduledTime, setValue]);
 
   const steps = [
     {
@@ -285,8 +368,16 @@ const EditBlog = ({ eid }) => {
         imageUrl = await uploadToImgBB(imageFile);
       }
 
-      if (data.status === "pending") {
-        data.scheduledPublishDate = null;
+      let scheduledDateTime = null;
+      if (data.status === "scheduled" && data.scheduledPublishDate) {
+        scheduledDateTime = data.scheduledPublishDate;
+
+        if (data.scheduledPublishTime) {
+          const [hours, minutes] = data.scheduledPublishTime
+            .split(":")
+            .map(Number);
+          scheduledDateTime.setHours(hours, minutes, 0, 0);
+        }
       }
 
       const res = await onUpdateBlog(blogData._id, {
@@ -295,11 +386,11 @@ const EditBlog = ({ eid }) => {
         tags: selectedTags,
         category: selectedCategories,
         image: imageUrl,
-        scheduledPublishDate: data.scheduledPublishDate,
+        scheduledPublishDate: scheduledDateTime,
         status: data.status,
       });
 
-      navigate("/admin/blogs")
+      navigate("/admin/blogs");
       toast.success("Blog updated successfully");
     } catch (error) {
       console.error("Error updating blog:", error);
@@ -528,8 +619,10 @@ const EditBlog = ({ eid }) => {
                     </FormItem>
                   )}
                 />
+              </div>
 
-                {status === "scheduled" && (
+              {status === "scheduled" && (
+                <div className="grid gap-4 sm:grid-cols-2">
                   <FormField
                     control={form.control}
                     name="scheduledPublishDate"
@@ -554,10 +647,20 @@ const EditBlog = ({ eid }) => {
                               mode="single"
                               selected={field.value}
                               onSelect={field.onChange}
-                              disabled={(date) =>
-                                date < new Date() ||
-                                date < new Date("1900-01-01")
-                              }
+                              disabled={(date) => {
+                                const today = new Date();
+                                today.setHours(0, 0, 0, 0);
+
+                                const maxDate = new Date();
+                                maxDate.setDate(maxDate.getDate() + 7);
+                                maxDate.setHours(23, 59, 59, 999);
+
+                                return (
+                                  date < today ||
+                                  date > maxDate ||
+                                  date < new Date("1900-01-01")
+                                );
+                              }}
                               initialFocus
                             />
                           </PopoverContent>
@@ -566,11 +669,211 @@ const EditBlog = ({ eid }) => {
                       </FormItem>
                     )}
                   />
-                )}
-              </div>
+
+                  <FormField
+                    control={form.control}
+                    name="scheduledPublishTime"
+                    render={({ field }) => {
+                      let timeValue;
+                      try {
+                        timeValue = field.value
+                          ? parse(field.value, "HH:mm", new Date())
+                          : new Date();
+                      } catch (error) {
+                        timeValue = new Date();
+                        const formattedTime = format(timeValue, "HH:mm");
+                        field.onChange(formattedTime);
+                      }
+
+                      const hours24 = timeValue.getHours();
+                      const is12HourFormat = hours24 >= 12 ? "PM" : "AM";
+                      const hours12 = hours24 % 12 || 12;
+                      const minutes = timeValue.getMinutes();
+
+                      const updateTime = (newHours12, newMinutes, newPeriod) => {
+                        const hours24Format =
+                          newPeriod === "PM" && newHours12 < 12
+                            ? newHours12 + 12
+                            : newPeriod === "AM" && newHours12 === 12
+                            ? 0
+                            : newHours12;
+
+                        const newTimeString = `${hours24Format
+                          .toString()
+                          .padStart(2, "0")}:${newMinutes
+                          .toString()
+                          .padStart(2, "0")}`;
+                        field.onChange(newTimeString);
+                      };
+
+                      const now = new Date();
+                      const isToday =
+                        scheduledDate &&
+                        scheduledDate.getDate() === now.getDate() &&
+                        scheduledDate.getMonth() === now.getMonth() &&
+                        scheduledDate.getFullYear() === now.getFullYear();
+
+                      const getAvailableHours = () => {
+                        const hours = Array.from({ length: 12 }, (_, i) => i + 1);
+
+                        if (!isToday) return hours;
+
+                        const currentHour = now.getHours();
+                        const isPM = is12HourFormat === "PM";
+                        const currentPeriod = currentHour >= 12 ? "PM" : "AM";
+
+                        if (currentPeriod !== is12HourFormat) return hours;
+
+                        return hours.filter((hour) => {
+                          const hour24 = isPM
+                            ? hour === 12
+                              ? 12
+                              : hour + 12
+                            : hour === 12
+                            ? 0
+                            : hour;
+                          return hour24 >= currentHour;
+                        });
+                      };
+
+                      const getAvailableMinutes = () => {
+                        const allMinutes = Array.from({ length: 60 }, (_, i) => i);
+
+                        if (!isToday) return allMinutes;
+
+                        const currentHour = now.getHours();
+                        const currentMinute = now.getMinutes();
+                        const isPM = is12HourFormat === "PM";
+
+                        const selectedHour24 = isPM
+                          ? hours12 === 12
+                            ? 12
+                            : hours12 + 12
+                          : hours12 === 12
+                          ? 0
+                          : hours12;
+
+                        if (selectedHour24 === currentHour) {
+                          return allMinutes.filter((minute) => minute > currentMinute);
+                        }
+
+                        return allMinutes;
+                      };
+
+                      const getAvailablePeriods = () => {
+                        const periods = ["AM", "PM"];
+
+                        if (!isToday) return periods;
+
+                        const currentHour = now.getHours();
+
+                        if (currentHour >= 12) {
+                          return periods.filter((period) => period === "PM");
+                        }
+
+                        return periods;
+                      };
+
+                      return (
+                        <FormItem>
+                          <FormLabel>Schedule Time</FormLabel>
+                          <div className="flex space-x-2">
+                            <Select
+                              value={hours12.toString()}
+                              onValueChange={(value) =>
+                                updateTime(parseInt(value), minutes, is12HourFormat)
+                              }
+                            >
+                              <FormControl>
+                                <SelectTrigger className="w-[80px]">
+                                  <SelectValue placeholder="Hour" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {getAvailableHours().map((hour) => (
+                                  <SelectItem key={hour} value={hour.toString()}>
+                                    {hour}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+
+                            <Select
+                              value={minutes.toString()}
+                              onValueChange={(value) =>
+                                updateTime(hours12, parseInt(value), is12HourFormat)
+                              }
+                            >
+                              <FormControl>
+                                <SelectTrigger className="w-[80px]">
+                                  <SelectValue placeholder="Min" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent className="max-h-[300px] overflow-y-auto">
+                                {getAvailableMinutes().map((minute) => (
+                                  <SelectItem key={minute} value={minute.toString()}>
+                                    {minute.toString().padStart(2, "0")}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+
+                            <Select
+                              value={is12HourFormat}
+                              onValueChange={(value) =>
+                                updateTime(hours12, minutes, value)
+                              }
+                            >
+                              <FormControl>
+                                <SelectTrigger className="w-[80px]">
+                                  <SelectValue placeholder="AM/PM" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {getAvailablePeriods().map((period) => (
+                                  <SelectItem key={period} value={period}>
+                                    {period}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <FormMessage />
+                          {isToday && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              For today, only future times can be selected
+                            </p>
+                          )}
+                        </FormItem>
+                      );
+                    }}
+                  />
+                </div>
+              )}
+
+              {status === "scheduled" && scheduledDate && scheduledTime && (
+                <div className="bg-primary/5 border border-primary/20 p-4 rounded-md">
+                  <h3 className="text-sm font-medium mb-2">
+                    Publishing Schedule
+                  </h3>
+                  <p className="text-sm flex items-center">
+                    <Clock className="h-4 w-4 mr-2 text-primary" />
+                    Blog will be published on{" "}
+                    <span className="font-medium ml-1 text-primary">
+                      {format(scheduledDate, "MMMM d, yyyy")} at{" "}
+                      {format(
+                        parse(scheduledTime, "HH:mm", new Date()),
+                        "h:mm a"
+                      )}
+                    </span>
+                  </p>
+                </div>
+              )}
             </div>
           </>
         );
+
       default:
         return null;
     }

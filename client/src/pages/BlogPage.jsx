@@ -130,6 +130,7 @@ export default function BlogPage() {
     };
 
     initializeBlog();
+    setSummary(null);
   }, [id]);
 
   useEffect(() => {
@@ -538,7 +539,7 @@ export default function BlogPage() {
           />
         </div>
       )}
-      {user && <RecommendedBlog cat={blog?.category?.[0]?._id} bId={id}/>}
+      {user && <RecommendedBlog cat={blog?.category?.[0]?._id} bId={id} />}
 
       <CommentsDialog
         blogId={id}

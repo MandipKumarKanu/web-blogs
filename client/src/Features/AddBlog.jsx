@@ -11,6 +11,7 @@ import {
   ArrowRight,
   Check,
   Clock,
+  ChevronDown,
 } from "lucide-react";
 import {
   Card,
@@ -52,6 +53,7 @@ import { toast } from "sonner";
 import { CKEditorComp } from "@/components/ckEditor";
 import useCategoryTagStore from "@/store/useCategoryTagStore";
 import { DateHelper } from "@/components/helper/dateHelper";
+import { Command, CommandGroup, CommandItem } from "@/components/ui/command";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -162,7 +164,11 @@ const BlogForm = () => {
     }
 
     for (let hour = startHour; hour < 24; hour++) {
-      for (let minute = hour === startHour ? startMinute : 0; minute < 60; minute += 30) {
+      for (
+        let minute = hour === startHour ? startMinute : 0;
+        minute < 60;
+        minute += 30
+      ) {
         const formattedHour = hour.toString().padStart(2, "0");
         const formattedMinute = minute.toString().padStart(2, "0");
         const timeString = `${formattedHour}:${formattedMinute}`;
@@ -194,10 +200,15 @@ const BlogForm = () => {
         const nextTime = new Date();
         nextTime.setMinutes(nextTime.getMinutes() + 30);
         nextTime.setMinutes(Math.ceil(nextTime.getMinutes() / 30) * 30);
-        
-        const nextTimeString = 
-          `${nextTime.getHours().toString().padStart(2, '0')}:${nextTime.getMinutes().toString().padStart(2, '0')}`;
-        
+
+        const nextTimeString = `${nextTime
+          .getHours()
+          .toString()
+          .padStart(2, "0")}:${nextTime
+          .getMinutes()
+          .toString()
+          .padStart(2, "0")}`;
+
         setValue("scheduledPublishTime", nextTimeString);
       }
     }
@@ -609,80 +620,253 @@ const BlogForm = () => {
                   <FormField
                     control={form.control}
                     name="scheduledPublishTime"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Schedule Time</FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className={`w-full justify-start ${
-                                !field.value && "text-muted-foreground"
-                              }`}
-                            >
-                              {field.value
-                                ? format(
-                                    parse(field.value, "HH:mm", new Date()),
-                                    "h:mm a"
-                                  )
-                                : "Select time"}
-                              <Clock className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-[220px] p-2">
-                            <div className="space-y-2">
-                              <div className="grid grid-cols-3 gap-2 overflow-y-auto max-h-[300px]">
-                                {timeOptions.map((time) => {
-                                  const [h, m] = time.split(":");
-                                  const displayTime = format(
-                                    parse(time, "HH:mm", new Date()),
-                                    "h:mm a"
-                                  );
+                    render={({ field }) => {
+                      let timeValue;
+                      try {
+                        timeValue = field.value
+                          ? parse(field.value, "HH:mm", new Date())
+                          : new Date();
+                      } catch (error) {
+                        timeValue = new Date();
+                        const formattedTime = format(timeValue, "HH:mm");
+                        field.onChange(formattedTime);
+                      }
 
-                                  return (
-                                    <Button
-                                      key={time}
-                                      variant={
-                                        field.value === time
-                                          ? "default"
-                                          : "outline"
-                                      }
-                                      size="sm"
-                                      onClick={() => field.onChange(time)}
-                                      className="text-xs"
+                      const hours24 = timeValue.getHours();
+                      const is12HourFormat = hours24 >= 12 ? "PM" : "AM";
+                      const hours12 = hours24 % 12 || 12;
+                      const minutes = timeValue.getMinutes();
+
+                      const updateTime = (
+                        newHours12,
+                        newMinutes,
+                        newPeriod
+                      ) => {
+                        const hours24Format =
+                          newPeriod === "PM" && newHours12 < 12
+                            ? newHours12 + 12
+                            : newPeriod === "AM" && newHours12 === 12
+                            ? 0
+                            : newHours12;
+
+                        const newTimeString = `${hours24Format
+                          .toString()
+                          .padStart(2, "0")}:${newMinutes
+                          .toString()
+                          .padStart(2, "0")}`;
+                        field.onChange(newTimeString);
+                      };
+
+                      return (
+                        <FormItem>
+                          <FormLabel>Schedule Time</FormLabel>
+                          <div className="flex space-x-2">
+                            <Select
+                              value={hours12.toString()}
+                              onValueChange={(value) =>
+                                updateTime(
+                                  parseInt(value),
+                                  minutes,
+                                  is12HourFormat
+                                )
+                              }
+                            >
+                              <FormControl>
+                                <SelectTrigger className="w-[80px]">
+                                  <SelectValue placeholder="Hour" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {Array.from({ length: 12 }, (_, i) => i + 1)
+                                  .filter((hour) => {
+
+                                    if (
+                                      !scheduledDate ||
+                                      scheduledDate.getDate() !==
+                                        new Date().getDate() ||
+                                      scheduledDate.getMonth() !==
+                                        new Date().getMonth() ||
+                                      scheduledDate.getFullYear() !==
+                                        new Date().getFullYear()
+                                    ) {
+                                      return true;
+                                    }
+
+                                    const now = new Date();
+                                    const currentHour = now.getHours();
+                                    const isPM = is12HourFormat === "PM";
+
+
+                                    const hour24 = isPM
+                                      ? hour === 12
+                                        ? 12
+                                        : hour + 12
+                                      : hour === 12
+                                      ? 0
+                                      : hour;
+
+
+                                      if (
+                                      (currentHour >= 12 && !isPM) ||
+                                      (currentHour < 12 && isPM)
+                                    ) {
+                                      return true; 
+                                    }
+
+
+                                    return hour24 >= currentHour;
+                                  })
+                                  .map((hour) => (
+                                    <SelectItem
+                                      key={hour}
+                                      value={hour.toString()}
                                     >
-                                      {displayTime}
-                                    </Button>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                        {scheduledDate &&
-                          scheduledDate.getDate() === new Date().getDate() &&
-                          scheduledDate.getMonth() === new Date().getMonth() &&
-                          scheduledDate.getFullYear() === new Date().getFullYear() && (
-                            <p className="text-xs text-muted-foreground mt-1">
-                              For today, only future times can be selected
-                            </p>
-                          )}
-                      </FormItem>
-                    )}
+                                      {hour}
+                                    </SelectItem>
+                                  ))}
+                              </SelectContent>
+                            </Select>
+
+                            <Select
+                              value={minutes.toString()}
+                              onValueChange={(value) =>
+                                updateTime(
+                                  hours12,
+                                  parseInt(value),
+                                  is12HourFormat
+                                )
+                              }
+                            >
+                              <FormControl>
+                                <SelectTrigger className="w-[80px]">
+                                  <SelectValue placeholder="Min" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent className="max-h-[300px] overflow-y-auto">
+                                {Array.from({ length: 60 }, (_, i) => i)
+                                  .filter((minute) => {
+
+                                    if (
+                                      !scheduledDate ||
+                                      scheduledDate.getDate() !==
+                                        new Date().getDate() ||
+                                      scheduledDate.getMonth() !==
+                                        new Date().getMonth() ||
+                                      scheduledDate.getFullYear() !==
+                                        new Date().getFullYear()
+                                    ) {
+                                      return true;
+                                    }
+
+                                    const now = new Date();
+                                    const currentHour = now.getHours();
+                                    const currentMinute = now.getMinutes();
+                                    const isPM = is12HourFormat === "PM";
+
+
+                                    const selectedHour24 = isPM
+                                      ? hours12 === 12
+                                        ? 12
+                                        : hours12 + 12
+                                      : hours12 === 12
+                                      ? 0
+                                      : hours12;
+
+
+                                      if (selectedHour24 === currentHour) {
+                                      return minute > currentMinute;
+                                    }
+
+
+                                    return true;
+                                  })
+                                  .map((minute) => (
+                                    <SelectItem
+                                      key={minute}
+                                      value={minute.toString()}
+                                    >
+                                      {minute.toString().padStart(2, "0")}
+                                    </SelectItem>
+                                  ))}
+                              </SelectContent>
+                            </Select>
+
+                            <Select
+                              value={is12HourFormat}
+                              onValueChange={(value) =>
+                                updateTime(hours12, minutes, value)
+                              }
+                            >
+                              <FormControl>
+                                <SelectTrigger className="w-[80px]">
+                                  <SelectValue placeholder="AM/PM" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {["AM", "PM"]
+                                  .filter((period) => {
+
+                                    if (
+                                      !scheduledDate ||
+                                      scheduledDate.getDate() !==
+                                        new Date().getDate() ||
+                                      scheduledDate.getMonth() !==
+                                        new Date().getMonth() ||
+                                      scheduledDate.getFullYear() !==
+                                        new Date().getFullYear()
+                                    ) {
+                                      return true;
+                                    }
+
+                                    const now = new Date();
+                                    const currentHour = now.getHours();
+
+
+                                    return !(
+                                      period === "AM" && currentHour >= 12
+                                    );
+                                  })
+                                  .map((period) => (
+                                    <SelectItem key={period} value={period}>
+                                      {period}
+                                    </SelectItem>
+                                  ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <FormMessage />
+                          {scheduledDate &&
+                            scheduledDate.getDate() === new Date().getDate() &&
+                            scheduledDate.getMonth() ===
+                              new Date().getMonth() &&
+                            scheduledDate.getFullYear() ===
+                              new Date().getFullYear() && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                For today, only future times can be selected
+                              </p>
+                            )}
+                        </FormItem>
+                      );
+                    }}
                   />
                 </div>
               )}
 
               {status === "scheduled" && scheduledDate && scheduledTime && (
                 <div className="bg-primary/5 border border-primary/20 p-4 rounded-md">
-                  <h3 className="text-sm font-medium mb-2">Publishing Schedule</h3>
+                  <h3 className="text-sm font-medium mb-2">
+                    Publishing Schedule
+                  </h3>
                   <p className="text-sm flex items-center">
                     <Clock className="h-4 w-4 mr-2 text-primary" />
                     Blog will be published on{" "}
                     <span className="font-medium ml-1 text-primary">
                       {format(scheduledDate, "MMMM d, yyyy")} at{" "}
-                      {format(parse(scheduledTime, 'HH:mm', new Date()), 'h:mm a')}
+                      {format(
+                        parse(scheduledTime, "HH:mm", new Date()),
+                        "h:mm a"
+                      )}
                     </span>
                   </p>
                   {/* <p className="text-xs text-muted-foreground mt-2">

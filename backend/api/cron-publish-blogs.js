@@ -1,51 +1,44 @@
 const Blog = require("../models/Blog");
-const connectDB = require("../config/db");
+const CronJobLog = require("../models/CronJobLog");
+const mongoose = require("mongoose");
+
+const connectDB = async () => {
+  if (mongoose.connection.readyState === 0) {
+    await mongoose.connect(process.env.MONGO_URI);
+  }
+};
 
 module.exports = async (req, res) => {
+  await connectDB();
+  const startTime = new Date();
+  
   try {
-    await connectDB();
-
-    console.log("Publishing cron job running at:", new Date().toISOString());
-    const now = new Date();
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
     const result = await Blog.updateMany(
-      {
-        scheduled: true,
-        scheduledPublishDate: { $lte: today },
-        status: "scheduled",
-      },
-      {
-        $set: {
-          status: "published",
-          publishedAt: now,
-          scheduled: false,
-        },
-      }
+      { scheduled: true, scheduledPublishDate: { $lte: startTime }, status: "scheduled" },
+      { $set: { status: "published", publishedAt: startTime, scheduled: false } }
     );
-
-    if (result.modifiedCount > 0) {
-      console.log(
-        `${result.modifiedCount} scheduled blogs published for ${
-          today.toISOString().split("T")[0]
-        }`
-      );
-    } else {
-      console.log(
-        `No pending scheduled blogs found for publishing at ${now.toISOString()}`
-      );
-    }
-
+    
+    await CronJobLog.create({
+      jobType: "publish-scheduled-blogs",
+      startTime,
+      endTime: new Date(),
+      success: true,
+      modifiedCount: result.modifiedCount
+    });
+    
     return res.status(200).json({
       success: true,
-      timestamp: now.toISOString(),
-      publishedCount: result.modifiedCount,
+      message: `Published ${result.modifiedCount} blogs.`
     });
   } catch (error) {
-    console.error("Cron job error:", error);
-    return res
-      .status(500)
-      .json({ error: "Failed to run scheduled publishing" });
+    await CronJobLog.create({
+      jobType: "publish-scheduled-blogs",
+      startTime,
+      endTime: new Date(),
+      success: false,
+      error: error.message
+    });
+    
+    return res.status(500).json({ error: error.message });
   }
 };

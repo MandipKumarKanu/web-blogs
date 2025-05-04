@@ -6,6 +6,12 @@ import { Plus, Search, MoreHorizontal } from "lucide-react";
 import { customAxios } from "@/components/config/axios";
 import { useNavigate } from "react-router-dom";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -51,6 +57,7 @@ const BlogsPage = () => {
       );
       setBlogs(response.data);
       setTotalPages(1);
+      setPage(1);
     } catch (error) {
       console.error("Error searching blogs:", error);
       setError("Failed to search blogs. Please try again.");
@@ -82,6 +89,10 @@ const BlogsPage = () => {
 
   const handleView = (id) => {
     navigate(`/blog/${id}`);
+  };
+
+  const handleCreatePost = () => {
+    navigate("/create");
   };
 
   useEffect(() => {
@@ -143,7 +154,7 @@ const BlogsPage = () => {
         accessorKey: "category",
         header: "Category",
         cell: ({ row }) =>
-          row.original.category.map((cat) => cat.name).join(", ") ||
+          row.original.category?.map((cat) => cat.name).join(", ") ||
           "Uncategorized",
       },
       {
@@ -166,19 +177,82 @@ const BlogsPage = () => {
       {
         accessorKey: "status",
         header: "Status",
-        cell: ({ row }) => (
-          <span
-            className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${
-              row.original.status === "Published"
-                ? "bg-green-100 text-green-800"
-                : row.original.status === "Draft"
-                ? "bg-yellow-100 text-yellow-800"
-                : "bg-red-100 text-red-800"
-            }`}
-          >
-            {row.original.status}
-          </span>
-        ),
+        cell: ({ row }) => {
+          const status = row.original.status;
+          const statusClass =
+            status === "Published"
+              ? "bg-green-100 text-green-800"
+              : status === "Draft"
+              ? "bg-yellow-100 text-yellow-800"
+              : status === "scheduled"
+              ? "bg-blue-100 text-blue-800"
+              : "bg-red-100 text-red-800";
+
+          const formattedStatus =
+            status.charAt(0).toUpperCase() + status.slice(1);
+
+          if (status === "scheduled" && row.original.scheduledPublishDate) {
+            const date = new Date(row.original.scheduledPublishDate);
+            const formattedDate = new Intl.DateTimeFormat("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            }).format(date);
+
+            return (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${statusClass}`}
+                    >
+                      {formattedStatus}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    Scheduled for: {formattedDate}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            );
+          }
+
+          if (status === "published" && row.original.publishedAt) {
+            const date = new Date(row.original.publishedAt);
+            const formattedDate = new Intl.DateTimeFormat("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            }).format(date);
+
+            return (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${statusClass}`}
+                    >
+                      {formattedStatus}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>Published on: {formattedDate}</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            );
+          }
+
+          return (
+            <span
+              className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${statusClass}`}
+            >
+              {formattedStatus}
+            </span>
+          );
+        },
       },
       {
         id: "actions",
@@ -220,13 +294,6 @@ const BlogsPage = () => {
     []
   );
 
-  const extraHtml = (
-    <Button>
-      <Plus className="mr-2 h-4 w-4" />
-      Create Post
-    </Button>
-  );
-
   return (
     <main className="flex-1 overflow-y-auto p-4 md:p-6">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -237,7 +304,10 @@ const BlogsPage = () => {
               Manage your blog content
             </p>
           </div>
-          {extraHtml}
+          <Button onClick={handleCreatePost}>
+            <Plus className="mr-2 h-4 w-4" />
+            Create Post
+          </Button>
         </div>
 
         {customSearchComponent}
