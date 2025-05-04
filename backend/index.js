@@ -12,6 +12,7 @@ const categoryRoutes = require("./routes/categoryRoutes");
 const statsRoutes = require("./routes/statsRoutes");
 const startCronJob = require("./cron");
 const http = require("http");
+const cronPublishHandler = require("./api/cron-publish-blogs");
 
 const app = express();
 const server = http.createServer(app);
@@ -35,6 +36,9 @@ app.use(
     credentials: true,
   })
 );
+
+app.get("/api/cron-publish-blogs", cronPublishHandler);
+
 app.use("/api/auth", authRoutes);
 app.use("/api/blogs", blogRoutes);
 app.use("/api/comment", commentRoutes);
@@ -47,9 +51,7 @@ const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-  // if (process.env.NODE_ENV === "production") {
   startCronJob();
-  // }
 });
 
 process.on("unhandledRejection", (err) => {
