@@ -6,11 +6,5 @@
       "src": "/(.*)",
       "dest": "/"
     }
-  ],
-  "crons": [
-    {
-      "path": "/api/cron-publish-blogs",
-      "schedule": "* * * * *"
-    }
   ]
 }

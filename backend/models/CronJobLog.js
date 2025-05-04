@@ -24,7 +24,13 @@ const CronJobLogSchema = new mongoose.Schema({
   },
   error: {
     type: String
+  },
+  expiresAt: {
+    type: Date,
+    default: () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
   }
 }, { timestamps: true });
+
+CronJobLogSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 module.exports = mongoose.model("CronJobLog", CronJobLogSchema);
