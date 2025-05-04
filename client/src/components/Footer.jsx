@@ -216,13 +216,13 @@ const Footer = () => {
           </div>
           <div className="flex items-center space-x-4 mb-4 md:mb-0">
             <a
-              href="https://twitter.com/mand1pshah"
+              href="https://twitter.com/SamsadMiya6"
               className="hover:text-primary transition-colors transform hover:scale-110"
             >
               <Twitter className="w-5 h-5" />
             </a>
             <a
-              href="mailto:mandipshah3@gmail.com"
+              href="mailto:samsadmiya33@gmail.com"
               className="hover:text-primary transition-colors transform hover:scale-110"
             >
               <Mail className="w-5 h-5" />

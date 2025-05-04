@@ -1,7 +1,9 @@
+import { useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { ArrowRight, Rocket, Sparkles } from "lucide-react";
 
 const HeroSection = () => {
+  const navigate=useNavigate()
   return (
     <section
       className="min-h-[93dvh] flex items-center justify-center py-12 px-4 sm:px-8 
@@ -34,6 +36,7 @@ const HeroSection = () => {
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
             <Button
+onClick={()=>navigate('/popular')}
               className="rounded-2xl px-8 py-6 text-lg bg-gradient-to-r from-primary to-secondary 
               hover:from-primary/90 hover:to-secondary/90 transition-all duration-300"
               aria-label="Start Exploring"
@@ -42,6 +45,7 @@ const HeroSection = () => {
               <ArrowRight className="h-5 w-5 ml-2" />
             </Button>
             <Button
+            onClick={()=>navigate('/login')}
               variant="outline"
               className="rounded-2xl px-8 py-6 text-lg flex items-center gap-2 
               hover:bg-muted/20 hover:border-primary/50 transition-all duration-300"
