@@ -10,13 +10,25 @@ import {
   FolderTree,
   FileText,
   ChevronRight,
+  MoreVertical,
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
-import { useLocation } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { useTheme } from "../context/theme-provider";
+
+// import { useTheme } from "@/hooks/useTheme";
 
 const Sidebar = ({ isOpen, setIsOpen, onNavigate }) => {
   const [activeItem, setActiveItem] = useState("dashboard");
   const location = useLocation();
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     const currentPath = location.pathname.split("/")[2] || "dashboard";
@@ -176,7 +188,31 @@ const Sidebar = ({ isOpen, setIsOpen, onNavigate }) => {
                     </motion.div>
                   )}
                 </div>
-                <ModeToggle />
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="ml-2">
+                      <MoreVertical className="h-5 w-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-44">
+                    <DropdownMenuItem asChild>
+                      <Link to="/" className="w-full">
+                        Go to Home
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setTheme(theme === "dark" ? "light" : "dark");
+                      }}
+                    >
+                      {theme === "dark"
+                        ? "Switch to Light Mode"
+                        : "Switch to Dark Mode"}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </motion.aside>
           </motion.div>

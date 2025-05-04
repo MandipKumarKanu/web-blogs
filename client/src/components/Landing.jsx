@@ -5,13 +5,13 @@ import { useEffect } from "react";
 import { toDateOnlyISO } from "./utils/DateConverter";
 import parse from "html-react-parser";
 import { Link } from "react-router-dom";
+import { Skeleton } from "./ui/skeleton";
 
 const Landing = () => {
   const { weekError, weekLoad, weeklyPopularBlogs, getWeeklyPop } =
     useBlogStore();
 
   useEffect(() => {
-    // console.log(weeklyPopularBlogs);
     if (weeklyPopularBlogs === 0) fetch();
   }, []);
 
@@ -19,12 +19,59 @@ const Landing = () => {
     await getWeeklyPop();
   };
 
+
+  if (weekLoad) {
+    return (
+      <div className="w-full h-full flex justify-center p-4 md:p-8">
+        <div className="container w-full h-full grid gap-8 lg:grid-cols-3 grid-cols-1">
+          <div className="lg:col-span-2 col-span-1 w-full">
+            <div className="text-4xl md:text-6xl font-bold mb-6 flex justify-between md:flex-row flex-col gap-4 md:items-end">
+              <Skeleton className="h-14 w-64 ml-5" />
+              <Skeleton className="h-10 w-44" />
+            </div>
+
+            <div className="relative w-full">
+              <Skeleton className="rounded-[2.5rem] w-full h-[500px]" />
+              <div className="absolute top-6 left-6 z-20 flex gap-2">
+                <Skeleton className="h-9 w-32 rounded-2xl" />
+                <Skeleton className="h-9 w-24 rounded-2xl" />
+              </div>
+              <div className="absolute bottom-6 left-6 right-6 z-20 space-y-4">
+                <Skeleton className="h-12 w-3/4" />
+                <Skeleton className="h-12 w-40 rounded-2xl" />
+              </div>
+            </div>
+          </div>
+
+          <div className="w-full flex flex-col gap-6">
+            <div className="p-6 rounded-[2.5rem] backdrop-blur-lg bg-gray-800/5 border border-white/10 h-full">
+              <Skeleton className="h-5 w-24" />
+              <Skeleton className="h-8 w-full mt-2 mb-3" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-5/6" />
+                <Skeleton className="h-4 w-4/6" />
+              </div>
+            </div>
+
+            <div className="relative group h-full">
+              <Skeleton className="rounded-[2.5rem] w-full h-[300px]" />
+              <div className="absolute bottom-6 right-6 z-20">
+                <Skeleton className="h-12 w-40 rounded-2xl" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full h-full flex justify-center p-4 md:p-8">
       <div className="container w-full h-full grid gap-8 lg:grid-cols-3 grid-cols-1">
         <div className="lg:col-span-2 col-span-1 w-full">
           <div className="text-4xl md:text-6xl font-bold mb-6 flex justify-between items-end">
-            <span className="italic ml-5">Best of the week</span>
+            <span className="ml-5">Best of the week</span>
             <Button
               variant="ghost"
               className="text-muted-foreground hover:text-foreground flex items-center gap-2"
@@ -116,4 +163,3 @@ const Landing = () => {
 };
 
 export default Landing;
-  

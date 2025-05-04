@@ -29,6 +29,7 @@ const roleMiddleware = require("../middleware/roleMiddleware");
 const userMiddleware = require("../middleware/userMiddleware");
 const router = express.Router();
 
+router.post("/recommended/:id", userMiddleware, getRecommendedBlogs);
 router.post(
   "/",
   authMiddleware,
@@ -41,7 +42,8 @@ router.get("/popular", getPopularBlog);
 router.get("/search", searchBlogs);
 router.get("/searchByQuery", searchBlogByQuery);
 router.post(
-  "/recommendation-content", userMiddleware,
+  "/recommendation-content",
+  userMiddleware,
   getContentBasedRecommendations
 );
 router.get("/filter", getByCategory);
@@ -52,7 +54,6 @@ router.get(
   getAllBlogsForAdmin
 );
 router.get("/popularmonth", getPopularBlogsOfMonth);
-router.get("/recommended", authMiddleware, getRecommendedBlogs);
 router.get(
   "/unapproved",
   authMiddleware,

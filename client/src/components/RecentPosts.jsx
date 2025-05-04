@@ -1,22 +1,23 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import RecentCard from "@/components/RecentCard";
 import { useBlogStore } from "@/store/useBlogStore";
+import { PopularCardSkeleton } from "./PopularCardSkeleton";
 
 const RecentPosts = () => {
   const { blogs, getAllBlogs, loading, error, totalPages } = useBlogStore();
-  const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 10;
 
   useEffect(() => {
-    getAllBlogs(currentPage, pageSize);
-  }, [currentPage, pageSize]);
+    getAllBlogs(1, 10);
+  }, []);
+
+  const displayedBlogs = useMemo(() => blogs?.slice(0, 6) || [], [blogs]);
 
   return (
     <section className="w-full py-12 md:py-24 bg-gradient-to-br from-background via-background to-muted/10">
       <div className="container mx-auto px-4">
         <div className="max-w-2xl mx-auto mb-12 md:mb-20 text-center flex flex-col items-center">
-          <h2 className="text-3xl md:text-5xl font-bold mb-6 italic">
+          <h2 className="text-3xl md:text-5xl font-bold mb-6">
             Recent Posts: Stay Informed
           </h2>
           <Button
@@ -28,12 +29,27 @@ const RecentPosts = () => {
           </Button>
         </div>
 
-        <div className="space-y-8">
-          {blogs &&
-            blogs
-              .slice(0, 6)
-              .map((post, key) => <RecentCard key={key} post={post} />)}
-        </div>
+        {loading ? (
+          <div className="grid grid-cols-1 gap-8 mt-4">
+            {[...Array(5)].map((_, i) => (
+              <PopularCardSkeleton key={i} />
+            ))}
+          </div>
+        ) : error ? (
+          <div className="text-center text-destructive py-8">
+            Failed to load posts. Please try again later.
+          </div>
+        ) : (
+          <div className="space-y-8">
+            {displayedBlogs.length > 0 ? (
+              displayedBlogs.map((post) => <RecentCard key={post._id} post={post} />)
+            ) : (
+              <div className="text-center text-muted-foreground py-8">
+                No recent posts found.
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </section>
   );

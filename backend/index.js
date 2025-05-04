@@ -47,7 +47,9 @@ const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-  // startCronJob();
+  if (process.env.NODE_ENV === "production") {
+    startCronJob();
+  }
 });
 
 process.on("unhandledRejection", (err) => {

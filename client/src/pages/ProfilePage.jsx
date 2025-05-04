@@ -8,6 +8,8 @@ import UserBlogs from "@/components/UserBlogs";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useParams } from "react-router-dom";
+import { customAxios } from "@/components/config/axios";
 
 const IMGBB_API_KEY = import.meta.env.VITE_IMGBB_API;
 
@@ -84,12 +86,18 @@ const useProfileForm = (user) => {
 };
 
 const ProfilePage = () => {
+  const { id: pId } = useParams();
   const { user, token } = useAuthStore();
   const [blogs, setBlogs] = useState([]);
   const [loadingBlogs, setLoadingBlogs] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [updateProfile, setUpdateProfile] = useState(false);
   const [updatePassword, setUpdatePassword] = useState(false);
+
+  const [profileUser, setProfileUser] = useState(null);
+  const [loadingProfileUser, setLoadingProfileUser] = useState(!!pId);
+
+  const displayUser = pId ? profileUser : user;
 
   const {
     form: profileForm,
@@ -98,7 +106,7 @@ const ProfilePage = () => {
     handleImageChange,
     handleDragDrop,
     removeImage,
-  } = useProfileForm(user);
+  } = useProfileForm(displayUser || {});
 
   const passwordForm = useForm({
     resolver: zodResolver(passwordSchema),
@@ -110,24 +118,42 @@ const ProfilePage = () => {
   });
 
   useEffect(() => {
-    if (user && token) {
-      fetchUserBlogs();
-    }
-  }, [user, token]);
+    const fetchProfileUser = async () => {
+      if (pId) {
+        setLoadingProfileUser(true);
+        try {
+          const res = await customAxios.get(`auth/user/${pId}`);
+          setProfileUser(res.data.user);
+        } catch (err) {
+          setProfileUser(null);
+        } finally {
+          setLoadingProfileUser(false);
+        }
+      }
+    };
+    fetchProfileUser();
+  }, [pId]);
 
   useEffect(() => {
-    if (user) {
+    if ((user && token) || pId) {
+      fetchUserBlogs();
+    }
+  }, [user, token, pId]);
+
+  useEffect(() => {
+    if (displayUser) {
       profileForm.reset({
-        name: user.name || "",
-        email: user.email || "",
+        name: displayUser.name || "",
+        email: displayUser.email || "",
         image: null,
       });
     }
-  }, [user]);
+  }, [displayUser]);
 
   const fetchUserBlogs = async () => {
     try {
-      const response = await blogByUserId(user?.id || user?._id);
+      const userId = pId || user?.id || user?._id;
+      const response = await blogByUserId(userId);
       setBlogs(response.data.blogs);
     } catch (error) {
       console.error("Error fetching blogs:", error);
@@ -202,9 +228,11 @@ const ProfilePage = () => {
           Profile Information
         </h2>
         <ProfileCard
-          user={user}
+          user={displayUser}
+          loading={loadingProfileUser}
           onUpdateProfile={() => setUpdateProfile(true)}
           onUpdatePassword={() => setUpdatePassword(true)}
+          pId={pId}
         />
       </div>
 
@@ -233,13 +261,12 @@ const ProfilePage = () => {
         updating={updating}
       />
 
-      {console.log(user)}
-      {user.role != "user" && (
-        <div>
-          <h2 className="text-2xl font-bold mb-4">Your Blogs</h2>
-          <UserBlogs blogs={blogs} loadingBlogs={loadingBlogs} />
-        </div>
-      )}
+      <div>
+        <h2 className="text-2xl font-bold mb-4">
+          {pId ? "User's Blogs" : "Your Blogs"}
+        </h2>
+        <UserBlogs blogs={blogs} loadingBlogs={loadingBlogs} pId={pId} />
+      </div>
     </div>
   );
 };

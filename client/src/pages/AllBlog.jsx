@@ -48,7 +48,6 @@ const AllBlog = () => {
           <div className="grid grid-cols-1 gap-6">
             {blogs.map((blog) => (
               <PostCard blog={blog} />
-              // <>{console.log(blog)}</>
             ))}
           </div>
         </InfiniteScroll>

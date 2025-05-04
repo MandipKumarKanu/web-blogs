@@ -12,7 +12,11 @@ const RecentCard = ({ post }) => {
       className="group hover:shadow-2xl transition-shadow duration-300 overflow-hidden"
     >
       <div className="flex flex-col md:flex-row h-full">
-        <div className="relative w-full md:w-[35%] h-72 md:h-auto shrink-0 overflow-hidden">
+        <Link
+          to={`/blog/${post?._id}`}
+          className="relative w-full md:w-[35%] h-72 md:h-auto shrink-0 overflow-hidden block"
+          tabIndex={-1}
+        >
           <div className="absolute inset-0">
             <img
               src={post.image}
@@ -27,7 +31,7 @@ const RecentCard = ({ post }) => {
               {post?.category?.[0]?.name}
             </div>
           </div>
-        </div>
+        </Link>
 
         <CardContent className="flex-1 p-6 md:p-8 flex flex-col justify-between">
           <div>
@@ -36,7 +40,9 @@ const RecentCard = ({ post }) => {
                 {post.title}
               </h3>
             </Link>
-            <div className="text-muted-foreground mb-6 line-clamp-3 max-h-[105px]">
+            <div
+              className="text-muted-foreground mb-6 line-clamp-3 max-h-[105px]"
+            >
               {parse(post.content)}
             </div>
 

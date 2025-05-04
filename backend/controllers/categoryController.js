@@ -4,13 +4,20 @@ const createCategory = async (req, res) => {
   const { name, description } = req.body;
 
   try {
-    const f = await Category.findOne({ name: { $regex: `^${name}$`, $options: "i" } });
+    const f = await Category.findOne({
+      name: { $regex: `^${name}$`, $options: "i" },
+    });
     if (f) {
       return res.status(400).json({ message: "Category already exists" });
     }
 
-    const category = await Category.create({ name: name.toLowerCase(), description });
-    res.status(201).json({ message: "Category created successfully", category });
+    const category = await Category.create({
+      name: name.toLowerCase(),
+      description,
+    });
+    res
+      .status(201)
+      .json({ message: "Category created successfully", category });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -25,11 +32,15 @@ const getAllCategories = async (req, res) => {
     let totalPages = Math.ceil(totalCategories / limit);
 
     if (limit === "all") {
-      categories = await Category.find();
+      categories = await Category.find().sort({ name: 1 });
+
       totalPages = 1;
     } else {
       const skip = (page - 1) * limit;
-      categories = await Category.find().skip(skip).limit(parseInt(limit));
+      categories = await Category.find()
+        .skip(skip)
+        .limit(parseInt(limit))
+        .sort({ name: -1 });
     }
 
     return res.status(200).json({
@@ -63,7 +74,9 @@ const updateCategory = async (req, res) => {
       name: { $regex: `^${name}$`, $options: "i" },
     });
     if (existingCategory) {
-      return res.status(400).json({ message: "Category with this name already exists" });
+      return res
+        .status(400)
+        .json({ message: "Category with this name already exists" });
     }
 
     const category = await Category.findByIdAndUpdate(
@@ -76,7 +89,9 @@ const updateCategory = async (req, res) => {
       return res.status(404).json({ message: "Category not found" });
     }
 
-    res.status(200).json({ message: "Category updated successfully", category });
+    res
+      .status(200)
+      .json({ message: "Category updated successfully", category });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

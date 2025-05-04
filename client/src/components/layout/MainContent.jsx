@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Activity, Users, FileText, FolderTree } from "lucide-react";
 import { customAxios } from "@/components/config/axios";
+import { DateHelper } from "@/components/helper/dateHelper";
 
 const MainContent = () => {
   const [stats, setStats] = useState(null);
@@ -120,7 +121,11 @@ const MainContent = () => {
                         </p>
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        {new Date(activity.createdAt).toLocaleDateString()}
+                        {
+                          new Date(
+                            DateHelper.toNPT(activity.createdAt)
+                          ).toLocaleDateString()
+                        }
                       </p>
                     </div>
                   ))}

@@ -16,7 +16,7 @@ const BlogSchema = new mongoose.Schema(
         ref: "Tag",
         required: true,
       },
-    ], 
+    ],
     category: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -33,8 +33,8 @@ const BlogSchema = new mongoose.Schema(
     publishedAt: { type: Date },
     status: {
       type: String,
-      enum: ["pending", "approved", "published", "rejected", "scheduled"],
-      default: "pending",
+      enum: ["published", "scheduled"],
+      default: "published",
     },
     rejectionMessage: { type: String, required: false },
     views: { type: Number, default: 0 },
