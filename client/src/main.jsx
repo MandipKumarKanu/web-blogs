@@ -5,6 +5,7 @@ import App from "./App";
 import { setupInterceptors } from "@/components/config/axios";
 import { useAuthStore } from "@/store/useAuthStore";
 import "./index.css";
+import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
 
 setupInterceptors(
   () => useAuthStore.getState().token,
@@ -18,4 +19,4 @@ createRoot(document.getElementById("root")).render(
   </BrowserRouter>
 );
 
-
+serviceWorkerRegistration.register();

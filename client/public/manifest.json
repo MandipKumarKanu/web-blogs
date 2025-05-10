@@ -1,0 +1,55 @@
+{
+  "short_name": "Blog",
+  "name": "Future Blog",
+  "icons": [
+    {
+      "src": "icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshots/desktop-home.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Homepage"
+    },
+    {
+      "src": "screenshots/desktop-blog.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Blog Article"
+    },
+    {
+      "src": "screenshots/mobile-home.png",
+      "sizes": "590x1080",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Mobile Homepage"
+    },
+    {
+      "src": "screenshots/mobile-blog.png",
+      "sizes": "590x1080",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Mobile Blog View"
+    }
+  ],
+  "id": "/index.html",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "description": "A simple web application",
+  "lang": "en-US"
+}
